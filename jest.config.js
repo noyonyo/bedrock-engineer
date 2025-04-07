@@ -7,6 +7,6 @@ module.exports = {
   testMatch: ['**/*.test.ts'],
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/',
-    '\\.integration\\.test\\.ts$' // .integration.test.ts で終わるファイルを除外
+    '\\.integration\\.test\\.ts$' // Exclude files ending with .integration.test.ts
   ]
 }

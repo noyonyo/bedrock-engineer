@@ -106,7 +106,7 @@ When use executeCommand tool:
     icon: 'laptop',
     iconColor: 'oklch(0.623 0.214 259.815)',
     category: 'coding',
-    // ソフトウェア開発者用デフォルトツール設定
+    // Default tool settings for software developers
     tools: [
       'createFolder',
       'writeToFile',
@@ -119,7 +119,7 @@ When use executeCommand tool:
       'executeCommand',
       'think'
     ],
-    // ソフトウェア開発者用の許可コマンド設定
+    // Permission command settings for software developers
     allowedCommands: [
       { pattern: 'npm *', description: 'npm command' },
       { pattern: 'sam *', description: 'aws sam cli command' },
@@ -131,9 +131,9 @@ When use executeCommand tool:
       { pattern: 'ls *', description: 'List directory command' },
       { pattern: 'grep *', description: 'grep command' }
     ],
-    // ソフトウェア開発者用のBedrock Agents設定
+    // Bedrock Agents settings for software developers
     bedrockAgents: [],
-    // ソフトウェア開発者用のKnowledge Base設定
+    // Knowledge Base settings for software developers
     knowledgeBases: [],
     isCustom: false
   },
@@ -198,7 +198,7 @@ Today's date is {{date}}, so my knowledge about very recent programming developm
     icon: 'code',
     iconColor: 'oklch(0.627 0.194 149.214)',
     category: 'coding',
-    // プログラミングメンター用のツール設定
+    // Tool settings for programming mentors
     tools: [
       'createFolder',
       'writeToFile',
@@ -221,9 +221,9 @@ Today's date is {{date}}, so my knowledge about very recent programming developm
       { pattern: 'javac *', description: 'Java compiler command' },
       { pattern: 'java *', description: 'Java runtime command' }
     ],
-    // プログラミングメンター用のBedrock Agents設定
+    // Bedrock Agents settings for programming mentors
     bedrockAgents: [],
-    // プログラミングメンター用のKnowledge Base設定
+    // Knowledge Base settings for programming mentors
     knowledgeBases: [],
     isCustom: false
   },
@@ -320,9 +320,9 @@ Maintain a creative, professional, and supportive tone while providing actionabl
       { pattern: 'ls *', description: 'List directory command' },
       { pattern: 'cd *', description: 'Change directory command' }
     ],
-    // プロダクトデザイナー用のBedrock Agents設定
+    // Bedrock Agents settings for product designers
     bedrockAgents: [],
-    // プロダクトデザイナー用のKnowledge Base設定
+    // Knowledge Base settings for product designers
     knowledgeBases: [],
     isCustom: false
   },
@@ -379,13 +379,11 @@ Here is example diagramm's xml:
     icon: 'diagram',
     iconColor: 'oklch(0.4 0.26 203.86)',
     category: 'diagram',
-    // ダイアグラム生成用のツール設定
+    // Tool settings for diagram generators
     tools: ['tavilySearch', 'think'],
-    // ダイアグラム生成用の許可コマンド設定
-    allowedCommands: [],
-    // ダイアグラム生成用のBedrock Agents設定
+    // Bedrock Agents settings for diagram generators
     bedrockAgents: [],
-    // ダイアグラム生成用のKnowledge Base設定
+    // Knowledge Base settings for diagram generators
     knowledgeBases: [],
     isCustom: false
   },
@@ -456,13 +454,11 @@ Basic principles for code generation:
     icon: 'web',
     iconColor: 'oklch(0.67 0.2 29.23)',
     category: 'website',
-    // ウェブサイト生成用のツール設定
+    // Tool settings for website generators
     tools: ['tavilySearch', 'retrieve', 'think'],
-    // ウェブサイト生成用の許可コマンド設定
-    allowedCommands: [],
-    // ウェブサイト生成用のBedrock Agents設定
+    // Bedrock Agents settings for website generators
     bedrockAgents: [],
-    // ウェブサイト生成用のKnowledge Base設定
+    // Knowledge Base settings for website generators
     knowledgeBases: [],
     isCustom: false
   }

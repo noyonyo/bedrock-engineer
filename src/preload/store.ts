@@ -29,100 +29,100 @@ const DEFAULT_GUARDRAIL_SETTINGS = {
 }
 
 type StoreScheme = {
-  /** Electronアプリケーションのユーザーデータ保存先パス */
+  /** Path where Electron application user data is stored */
   userDataPath?: string
 
-  /** 現在選択されているプロジェクト（作業ディレクトリ）のパス */
+  /** Path of the currently selected project (working directory) */
   projectPath?: string
 
-  /** 現在選択されている言語モデル (LLM) の設定 */
+  /** Settings for the currently selected language model (LLM) */
   llm?: LLM
 
-  /** 言語モデルの推論パラメータ（温度、最大トークン数など） */
+  /** Inference parameters for the language model (temperature, max tokens, etc.) */
   inferenceParams: InferenceParameters
 
-  /** 思考モードの設定（Claude 3.7 Sonnet用） */
+  /** Thinking mode settings (for Claude 3.7 Sonnet) */
   thinkingMode?: ThinkingMode
 
-  /** アプリケーションの表示言語設定（日本語または英語） */
+  /** Application display language setting (Japanese or English) */
   language: 'ja' | 'en'
 
-  /** エージェントチャットの設定（無視するファイル一覧、コンテキスト長など） */
+  /** Agent chat configuration (ignored files list, context length, etc.) */
   agentChatConfig: AgentChatConfig
 
-  /** 使用可能なツールの状態と設定（有効/無効、設定情報） */
+  /** State and settings of available tools (enabled/disabled, configuration) */
   tools: ToolState[]
 
-  /** ウェブサイトジェネレーター機能の設定 */
+  /** Website generator feature settings */
   websiteGenerator?: {
-    /** 使用する知識ベース一覧 */
+    /** List of knowledge bases to use */
     knowledgeBases?: KnowledgeBase[]
-    /** 知識ベース機能を有効にするかどうか */
+    /** Whether to enable knowledge base feature */
     enableKnowledgeBase?: boolean
-    /** 検索機能を有効にするかどうか */
+    /** Whether to enable search feature */
     enableSearch?: boolean
   }
 
-  /** Tavily検索APIの設定 */
+  /** Tavily search API settings */
   tavilySearch: {
-    /** Tavily検索APIのAPIキー */
+    /** API key for Tavily search API */
     apikey: string
   }
 
-  /** Backend の APIエンドポイントのURL */
+  /** Backend API endpoint URL */
   apiEndpoint: string
 
-  /** 高度な設定オプション */
+  /** Advanced setting options */
   advancedSetting: {
-    /** キーボードショートカット設定 */
+    /** Keyboard shortcut settings */
     keybinding: {
-      /** メッセージ送信キーの設定（EnterまたはCmd+Enter） */
+      /** Message send key setting (Enter or Cmd+Enter) */
       sendMsgKey: SendMsgKey
     }
   }
 
-  /** AWS認証情報とリージョン設定 */
+  /** AWS credentials and region settings */
   aws: AWSCredentials
 
-  /** ユーザーが作成したカスタムエージェントの一覧 */
+  /** List of custom agents created by the user */
   customAgents: CustomAgent[]
 
-  /** 現在選択されているエージェントのID */
+  /** ID of the currently selected agent */
   selectedAgentId: string
 
-  /** 使用可能な知識ベース一覧 */
+  /** List of available knowledge bases */
   knowledgeBases: KnowledgeBase[]
 
-  /** コマンド実行の設定（シェル設定） */
+  /** Command execution settings (shell configuration) */
   shell: string
 
-  /** 通知機能の有効/無効設定 */
+  /** Notification feature enable/disable setting */
   notification?: boolean
 
-  /** Amazon Bedrock特有の設定 */
+  /** Amazon Bedrock specific settings */
   bedrockSettings?: {
-    /** リージョンフェイルオーバー機能の有効/無効 */
+    /** Enable/disable region failover feature */
     enableRegionFailover: boolean
-    /** フェイルオーバー時に使用可能なリージョン一覧 */
+    /** List of available regions for failover */
     availableFailoverRegions: string[]
   }
 
-  /** ガードレール設定 */
+  /** Guardrail settings */
   guardrailSettings?: {
-    /** ガードレールを有効にするかどうか */
+    /** Whether to enable guardrail */
     enabled: boolean
-    /** ガードレールID */
+    /** Guardrail ID */
     guardrailIdentifier: string
-    /** ガードレールバージョン */
+    /** Guardrail version */
     guardrailVersion: string
-    /** ガードレールのトレース設定 */
+    /** Guardrail trace settings */
     trace: 'enabled' | 'disabled'
   }
 
-  /** 使用可能なAmazon Bedrockエージェントの一覧 */
+  /** List of available Amazon Bedrock agents */
   bedrockAgents?: BedrockAgent[]
 
-  /** YAML形式から読み込まれた共有エージェントの一覧 */
+  /** List of shared agents loaded from YAML format */
   sharedAgents?: CustomAgent[]
 }
 
@@ -173,7 +173,7 @@ const init = () => {
     electronStore.set('inferenceParams', DEFAULT_INFERENCE_PARAMS)
   }
 
-  // thinkingMode の初期化
+  // Initialize thinking mode
   const thinkingMode = electronStore.get('thinkingMode')
   if (!thinkingMode) {
     electronStore.set('thinkingMode', DEFAULT_THINKING_MODE)

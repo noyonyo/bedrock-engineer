@@ -1,4 +1,4 @@
-// 独自の型定義を使用
+// Use custom type definitions
 
 import { CommandConfig } from '@/types/agent-chat'
 import { BedrockAgent } from '@/types/agent'

@@ -95,7 +95,8 @@ export const AWSSection: React.FC<AWSSectionProps> = ({
     label: model.modelName
   }))
 
-  // Bedrock対応リージョンのみをフィルタリング
+  // Filter only Bedrock-supported regions
+  // Clear selected regions if failover is disabled
   const bedrockRegions = AWS_REGIONS.filter((region) => region.bedrockSupported)
 
   const handleRegionSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {

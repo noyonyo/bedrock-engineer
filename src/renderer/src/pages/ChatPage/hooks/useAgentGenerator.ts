@@ -36,7 +36,7 @@ export const useAgentGenerator = () => {
   const [result, setResult] = useState<string>('')
   const { currentLLM: llm, selectedAgentId, getAgentTools } = useSetting()
 
-  // 現在選択中のエージェントのツールを取得
+  // Get tools for the currently selected agent
   const agentTools = getAgentTools(selectedAgentId)
   const promptTemplate = getPromptTemplate(agentTools)
 
@@ -59,7 +59,7 @@ Description: ${description}
     if (messages.length > 1) {
       const lastMessage = messages[messages.length - 1]
       if (lastMessage.content) {
-        // lastMessage.content の配列のなかから text フィールドを含む要素を取り出す
+        // Extract elements containing text field from lastMessage.content array
         const textContent = lastMessage.content.find((v) => v.text)
         if (textContent && textContent.text) {
           setResult(textContent.text)

@@ -80,12 +80,12 @@ The value property should contain the suggested content. The suggested content h
 <example-ja>
 [
   {
-    "title": "画像を追加",
-    "content": "ユーザーがわかりやすく見るために、ウェブサイトに画像を追加してください。"
+    "title": "Add Images",
+    "content": "Please add images to the website to make it easier for users to understand."
   },
   {
-    "title": "ナビゲーションを簡素化",
-    "content": "メニュー構造を簡素化し、重要なリンクを強調してください。サブメニューを使用せず、平坦な構造を目指し、検索機能を追加してください。"
+    "title": "Simplify Navigation",
+    "content": "Simplify the menu structure and highlight important links. Aim for a flat structure without using submenus and add a search function."
   },
   {
     "title": "構造の整理と図解",
@@ -347,12 +347,12 @@ The value property should contain the recommended content. The recommended conte
 <schema>
 [
   {
-    title: "Add images",
-    value: "To make your website more appealing, insert images that are easy for users to understand"
+    title: "Add Images",
+    value: "Please add images to the website to make it easier for users to understand."
   },
   {
-    title: "Simplify navigation",
-    value: "Simplify the menu structure and make important links prominent. \n Limit the use of submenus and aim for a flat structure. \n Provide a search function to help users find content quickly."
+    title: "Simplify Navigation",
+    value: "Simplify the menu structure and highlight important links. Aim for a flat structure without using submenus and add a search function."
   }
   ]
 </schema>

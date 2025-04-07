@@ -6,7 +6,7 @@ import path from 'path'
 import { CustomAgent, ToolState } from '../types/agent-chat'
 import yaml from 'js-yaml'
 import { Tool } from '@aws-sdk/client-bedrock-runtime'
-// 直接storeをインポート
+// Import store directly
 import { store } from './store'
 import { getMcpToolSpecs } from './mcp'
 
@@ -22,7 +22,7 @@ const createFolderIfNotExists = async (folderPath: string): Promise<void> => {
 
 async function readSharedAgents(): Promise<{ agents: CustomAgent[]; error?: Error }> {
   try {
-    // 直接importしたstoreを使用
+    // Use directly imported store
     // Get the project path from the renderer store
     const projectPath = store.get('projectPath')
     if (!projectPath) {
@@ -63,13 +63,13 @@ async function readSharedAgents(): Promise<{ agents: CustomAgent[]; error?: Erro
           agent.isShared = true
           agent.isCustom = false
 
-          // mcpServersが存在する場合は、対応するmcpToolsを取得
+          // If mcpServers exists, get corresponding mcpTools
           if (agent.mcpServers && agent.mcpServers.length > 0) {
             try {
-              // このエージェントのMCPサーバー構成からツールを取得
+              // Get tools from this agent's MCP server configuration
               const mcpTools = await getMcpToolSpecs(agent.mcpServers)
               if (mcpTools && mcpTools.length > 0) {
-                // mcpToolsをToolStateとして追加（有効状態）
+                // Add mcpTools as ToolState (enabled state)
                 agent.mcpTools = mcpTools.map((tool: Tool) => ({
                   ...tool,
                   enabled: true
@@ -152,13 +152,13 @@ async function readDirectoryAgents(): Promise<{ agents: CustomAgent[]; error?: E
           agent.isShared = false
           agent.isCustom = false
 
-          // mcpServersが存在する場合は、対応するmcpToolsを取得
+          // If mcpServers exists, get corresponding mcpTools
           if (agent.mcpServers && agent.mcpServers.length > 0) {
             try {
-              // このエージェントのMCPサーバー構成からツールを取得
+              // Get tools from this agent's MCP server configuration
               const mcpTools = await getMcpToolSpecs(agent.mcpServers)
               if (mcpTools && mcpTools.length > 0) {
-                // mcpToolsをToolStateとして追加（有効状態）
+                // Add mcpTools as ToolState (enabled state)
                 agent.mcpTools = mcpTools.map((tool: Tool) => ({
                   ...tool,
                   enabled: true

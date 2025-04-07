@@ -35,8 +35,8 @@ function createMockStore(initialState: Record<string, any> = {}): ServiceContext
   return store
 }
 
-// Agent関連のテスト用設定
-const TEST_AGENT_ID = process.env.TEST_AGENT_ID || 'FKXNGR6QRE' // デフォルトのテスト用エージェントID
+// Agent test configuration
+const TEST_AGENT_ID = process.env.TEST_AGENT_ID || 'FKXNGR6QRE' // Default test agent ID
 const TEST_AGENT_ALIAS_ID = process.env.TEST_AGENT_ALIAS_ID || 'ZHSSM0WPXS'
 
 // Only run these tests if INTEGRATION_TEST is true
@@ -63,7 +63,7 @@ const TEST_AGENT_ALIAS_ID = process.env.TEST_AGENT_ALIAS_ID || 'ZHSSM0WPXS'
     }, 30000)
   })
 
-  // Agent関連のテストケース
+  // Agent-related test cases
   describe('Agent Tests', () => {
     test('should successfully invoke agent with basic input', async () => {
       const inputText = 'Hello, what can you help me with?'
@@ -83,7 +83,7 @@ const TEST_AGENT_ALIAS_ID = process.env.TEST_AGENT_ALIAS_ID || 'ZHSSM0WPXS'
     }, 30000)
 
     test('should maintain conversation context with session ID', async () => {
-      // 初期の対話
+      // Initial conversation
       const initialResponse = await bedrockService.invokeAgent({
         agentId: TEST_AGENT_ID,
         agentAliasId: TEST_AGENT_ALIAS_ID,
@@ -93,7 +93,7 @@ const TEST_AGENT_ALIAS_ID = process.env.TEST_AGENT_ALIAS_ID || 'ZHSSM0WPXS'
       expect(initialResponse.sessionId).toBeDefined()
       const sessionId = initialResponse.sessionId
 
-      // 同じセッションでフォローアップの質問
+      // Follow-up question in the same session
       const followUpResponse = await bedrockService.invokeAgent({
         agentId: TEST_AGENT_ID,
         agentAliasId: TEST_AGENT_ALIAS_ID,
@@ -123,14 +123,14 @@ const TEST_AGENT_ALIAS_ID = process.env.TEST_AGENT_ALIAS_ID || 'ZHSSM0WPXS'
 
   describe.only('Agent Tests (save image)', () => {
     test('should save png file', async () => {
-      const inputText = `以下の購買データをもとに、購買日ごとの購入金額の合計値をグラフとして可視化してください。
-このCSV形式のデータには、以下のような情報が含まれています。
-- 'customer_id': 顧客 ID
-- 'product_id': 商品 ID
-- 'purchase_date': 購買日
-- 'purchase_amount': 購買金額
+      const inputText = `Please visualize the total purchase amount per purchase date as a graph based on the following purchase data.
+This CSV format data contains the following information:
+- 'customer_id': Customer ID
+- 'product_id': Product ID
+- 'purchase_date': Purchase Date
+- 'purchase_amount': Purchase Amount
 
-<購買データ>
+<Purchase Data>
 customer_id,product_id,purchase_date,purchase_amount
 C001,P001,2023-04-01,50.00
 C002,P002,2023-04-02,75.00
@@ -142,7 +142,7 @@ C001,P001,2023-04-07,30.00
 C002,P002,2023-04-08,80.00
 C003,P001,2023-04-09,45.00
 C001,P003,2023-04-10,120.00
-</購買データ>`
+</Purchase Data>`;
 
       const response = await bedrockService.invokeAgent({
         agentId: TEST_AGENT_ID,

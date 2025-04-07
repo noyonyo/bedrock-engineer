@@ -18,8 +18,8 @@ import { createCategoryLogger } from '../../../../common/logger'
 const converseLogger = createCategoryLogger('bedrock:converse')
 
 /**
- * Bedrock Converse APIと連携するサービスクラス
- * リクエストの前処理やエラーハンドリングを担当
+ * Service class for interacting with Bedrock Converse API
+ * Handles request preprocessing and error handling
  */
 export class ConverseService {
   private static readonly MAX_RETRIES = 30
@@ -28,23 +28,23 @@ export class ConverseService {
   constructor(private context: ServiceContext) {}
 
   /**
-   * 非ストリーミングのConverseAPIを呼び出す
+   * Call non-streaming Converse API
    */
   async converse(props: CallConverseAPIProps, retries = 0): Promise<ConverseCommandOutput> {
     try {
-      // リクエストパラメータの準備
+      // Prepare request parameters
       const { commandParams } = await this.prepareCommandParameters(props)
       const runtimeClient = createRuntimeClient(this.context.store.get('aws'))
       const awsConfig = this.context.store.get('aws')
 
-      // APIリクエスト前にログ出力
+      // Log output before API request
       converseLogger.debug('Sending converse request', {
         modelId: props.modelId,
         region: awsConfig.region,
         messageCount: props.messages.length
       })
 
-      // APIリクエストを送信
+      // Send API request
       const command = new ConverseCommand(commandParams)
       return await runtimeClient.send(command)
     } catch (error: any) {
@@ -53,26 +53,28 @@ export class ConverseService {
   }
 
   /**
-   * ストリーミング形式のConverseAPIを呼び出す
+   * Call ConverseAPI in streaming format
+   * @param input ConverseAPI input parameters
+   * @returns Streaming response
    */
   async converseStream(
     props: CallConverseAPIProps,
     retries = 0
   ): Promise<ConverseStreamCommandOutput> {
     try {
-      // リクエストパラメータの準備
+      // Prepare request parameters
       const { commandParams } = await this.prepareCommandParameters(props)
       const runtimeClient = createRuntimeClient(this.context.store.get('aws'))
       const awsConfig = this.context.store.get('aws')
 
-      // APIリクエスト前にログ出力
+      // Log before API request
       converseLogger.debug('Sending stream converse request', {
         modelId: props.modelId,
         region: awsConfig.region,
         messageCount: props.messages.length
       })
 
-      // APIリクエストを送信
+      // Send API request
       const command = new ConverseStreamCommand(commandParams)
       return await runtimeClient.send(command)
     } catch (error: any) {
@@ -81,8 +83,8 @@ export class ConverseService {
   }
 
   /**
-   * APIリクエスト用のパラメータを準備
-   * メッセージの処理とコマンドパラメータの作成を行う
+   * Prepare parameters for API request
+   * Process messages and create command parameters
    */
   private async prepareCommandParameters(props: CallConverseAPIProps): Promise<{
     commandParams: ConverseCommandInput | ConverseStreamCommandInput
@@ -90,24 +92,24 @@ export class ConverseService {
   }> {
     const { modelId, messages, system, toolConfig, guardrailConfig } = props
 
-    // 画像データを含むメッセージを処理
+    // Process messages
     const processedMessages = this.processMessages(messages)
 
-    // デバッグ用：空のテキストフィールドのチェック
+    // Debug: Check empty text fields
     this.logEmptyTextFields(processedMessages)
 
-    // メッセージを正規化
+    // Normalize messages
     const sanitizedMessages = this.normalizeMessages(processedMessages)
 
-    // 推論パラメータを取得
+    // Get inference parameters
     const inferenceParams = this.context.store.get('inferenceParams')
 
     const thinkingMode = this.context.store.get('thinkingMode')
 
-    // Claude 3.7 Sonnet でThinking Modeが有効な場合、additionalModelRequestFieldsを追加
+    // If Claude 3.7 Sonnet is used and Thinking Mode is enabled, add additionalModelRequestFields
     let additionalModelRequestFields: Record<string, any> | undefined = undefined
 
-    // thinkingモードが有効かつmodelIdがClaude 3.7 Sonnetの場合のみ設定
+    // If modelId is Claude 3.7 Sonnet and thinkingMode is enabled, set additionalModelRequestFields
     if (modelId.includes('anthropic.claude-3-7-sonnet') && thinkingMode?.type === 'enabled') {
       additionalModelRequestFields = {
         thinking: {
@@ -115,10 +117,10 @@ export class ConverseService {
           budget_tokens: thinkingMode.budget_tokens
         }
       }
-      inferenceParams.topP = undefined // reasoning は topP は不要
-      inferenceParams.temperature = 1 // reasoning は temperature を 1 必須
+      inferenceParams.topP = undefined // reasoning does not require topP
+      inferenceParams.temperature = 1 // reasoning requires temperature to be 1
 
-      // Thinking Mode有効時の特別なログ出力
+      // Special log output for enabled Thinking Mode
       converseLogger.debug('Enabling Thinking Mode', {
         modelId,
         thinkingType: thinkingMode.type,
@@ -138,7 +140,7 @@ export class ConverseService {
       inferenceParams.temperature = 1
     }
 
-    // コマンドパラメータを作成
+    // Create command parameters
     const commandParams: ConverseCommandInput | ConverseStreamCommandInput = {
       modelId,
       messages: sanitizedMessages,
@@ -148,7 +150,7 @@ export class ConverseService {
       additionalModelRequestFields
     }
 
-    // ガードレール設定が提供されている場合、または設定から有効になっている場合に追加
+    // If guardrailConfig is provided or enabled from settings, add
     if (guardrailConfig) {
       commandParams.guardrailConfig = guardrailConfig
       converseLogger.debug('Using provided guardrail', {
@@ -156,7 +158,7 @@ export class ConverseService {
         guardrailVersion: guardrailConfig.guardrailVersion
       })
     } else {
-      // 設定からガードレール設定を取得
+      // Get guardrail settings from settings
       const storedGuardrailSettings = this.context.store.get('guardrailSettings')
       if (storedGuardrailSettings?.enabled && storedGuardrailSettings.guardrailIdentifier) {
         commandParams.guardrailConfig = {
@@ -175,7 +177,7 @@ export class ConverseService {
   }
 
   /**
-   * メッセージを処理し、画像データを正しい形式に変換
+   * Process messages and convert image data to the correct format
    */
   private processMessages(messages: Message[]): Message[] {
     return messages.map((msg) => ({
@@ -185,7 +187,7 @@ export class ConverseService {
   }
 
   /**
-   * 空のテキストフィールドを持つメッセージをログに出力
+   * Log messages with empty text fields
    */
   private logEmptyTextFields(messages: Message[]): void {
     const emptyTextFieldMsgs = messages.filter(
@@ -207,7 +209,7 @@ export class ConverseService {
   }
 
   /**
-   * コンテンツブロックのテキストフィールドが空でないことを確認
+   * Ensure content blocks have non-empty text fields
    */
   private sanitizeContentBlocks(content: ContentBlock[] | unknown): ContentBlock[] | undefined {
     if (!Array.isArray(content)) {
@@ -215,23 +217,23 @@ export class ConverseService {
     }
 
     return content.map((block) => {
-      // テキストフィールドが空または実質的に空（空白・改行のみ）の場合
+      // If text field is empty or effectively empty (only spaces or newlines)
       if (
         Object.prototype.hasOwnProperty.call(block, 'text') &&
         (block.text === '' || !block.text?.trim())
       ) {
-        // スペース1文字をプレースホルダーとして設定
+        // Set text field to a single space placeholder
         block.text = ' '
       }
 
-      // toolUseブロックの入力が空文字の場合、空のJSONオブジェクトに変換
+      // If toolUse block input is empty string, convert to empty JSON object
       if (
         Object.prototype.hasOwnProperty.call(block, 'toolUse') &&
         block.toolUse &&
         Object.prototype.hasOwnProperty.call(block.toolUse, 'input') &&
         block.toolUse.input === ''
       ) {
-        // 空の文字列を空のJSONオブジェクトに置き換える
+        // Replace empty string with empty JSON object
         block.toolUse.input = {}
         converseLogger.debug(
           'Empty toolUse.input converted to empty JSON object in sanitizeContentBlocks',
@@ -246,47 +248,31 @@ export class ConverseService {
   }
 
   /**
-   * メッセージの各コンテンツブロックを正規化
+   * Normalize each content block in messages
    */
   private normalizeMessages(messages: Message[]): Message[] {
     return messages.map((message) => {
       if (message.content) {
-        // コンテンツが配列の場合、空のテキストブロックを除去してからサニタイズ
+        // If content is an array, remove empty text blocks and sanitize
         if (Array.isArray(message.content)) {
-          // 空のコンテンツブロックを持たないように配列をフィルタリング
+          // Filter out empty content blocks
           const validBlocks = message.content.filter((block) => {
-            // テキストブロックで、かつ中身が実質的に空の場合はフィルタリング
+            // Filter out text blocks that are effectively empty
             if (
               Object.prototype.hasOwnProperty.call(block, 'text') &&
               (!block.text || !block.text.trim())
             ) {
-              // ツールの使用結果など他のブロックタイプがある場合は保持する
+              // Keep other block types
               return Object.keys(block).length > 1
             }
             return true
           })
 
-          // toolUseブロックの入力が空文字の場合、空のJSONオブジェクトに変換
-          validBlocks.forEach((block) => {
-            if (
-              Object.prototype.hasOwnProperty.call(block, 'toolUse') &&
-              block.toolUse &&
-              Object.prototype.hasOwnProperty.call(block.toolUse, 'input') &&
-              block.toolUse.input === ''
-            ) {
-              // 空の文字列を空のJSONオブジェクトに置き換える
-              block.toolUse.input = {}
-              converseLogger.debug('Empty toolUse.input converted to empty JSON object', {
-                toolName: block.toolUse.name
-              })
-            }
-          })
-
-          // 配列が空になってしまった場合は、最低1つの有効なブロックを確保
+          // If all blocks are filtered out, keep at least one valid block
           if (validBlocks.length === 0) {
             message.content = [{ text: ' ' }]
           } else {
-            // 残ったブロックをサニタイズ
+            // Sanitize remaining blocks
             message.content = this.sanitizeContentBlocks(validBlocks)
           }
         } else {
@@ -298,7 +284,7 @@ export class ConverseService {
   }
 
   /**
-   * エラー処理を行う
+   * Handle errors
    */
   private async handleError<T extends ConverseCommandOutput | ConverseStreamCommandOutput>(
     error: any,
@@ -307,7 +293,7 @@ export class ConverseService {
     methodName: 'converse' | 'converseStream',
     CommandClass: typeof ConverseCommand | typeof ConverseStreamCommand
   ): Promise<T> {
-    // スロットリングまたはサービス利用不可の場合
+    // If throttling or service unavailable
     if (error.name === 'ThrottlingException' || error.name === 'ServiceUnavailableException') {
       converseLogger.warn(`${error.name} occurred - retrying`, {
         retry: retries,
@@ -317,7 +303,7 @@ export class ConverseService {
         method: methodName
       })
 
-      // 最大リトライ回数を超えた場合はエラーをスロー
+      // If maximum retries reached, throw error
       if (retries >= ConverseService.MAX_RETRIES) {
         converseLogger.error('Maximum retries reached for Bedrock API request', {
           maxRetries: ConverseService.MAX_RETRIES,
@@ -328,7 +314,7 @@ export class ConverseService {
         throw error
       }
 
-      // スロットリングの場合は別リージョンでの実行を試みる
+      // If throttling, try execution in another region
       if (error.name === 'ThrottlingException') {
         const alternateResult = await this.tryAlternateRegion(props, error, CommandClass)
         if (alternateResult) {
@@ -336,23 +322,23 @@ export class ConverseService {
         }
       }
 
-      // 待機してから再試行
+      // Wait and retry
       await new Promise((resolve) => setTimeout(resolve, ConverseService.RETRY_DELAY))
       return methodName === 'converse'
         ? ((await this.converse(props, retries + 1)) as T)
         : ((await this.converseStream(props, retries + 1)) as T)
     }
 
-    // バリデーションエラーの場合
+    // If validation error
     if (error.name === 'ValidationException') {
-      // その他のバリデーションエラー
+      // Other validation errors
       converseLogger.error(`ValidationException in ${methodName}`, {
         errorMessage: error.message,
         errorDetails: error.$metadata,
         modelId: props.modelId
       })
     } else {
-      // その他のエラー
+      // Other errors
       converseLogger.error(`Error in ${methodName}`, {
         errorName: error.name,
         errorMessage: error.message,
@@ -365,7 +351,7 @@ export class ConverseService {
   }
 
   /**
-   * 別リージョンでのAPIコール実行を試みる
+   * Try executing API call in another region
    */
   private async tryAlternateRegion<T extends ConverseCommandOutput | ConverseStreamCommandOutput>(
     props: CallConverseAPIProps,
@@ -386,7 +372,7 @@ export class ConverseService {
       availableRegions
     )
 
-    // 別のリージョンが現在のリージョンと同じ場合はスキップ
+    // Skip if alternate region is the same as the current region
     if (alternateRegion === awsConfig.region) {
       return null
     }
@@ -398,16 +384,16 @@ export class ConverseService {
     })
 
     try {
-      // 別リージョン用のクライアントを作成
+      // Create client for another region
       const alternateClient = createRuntimeClient({
         ...awsConfig,
         region: alternateRegion
       })
 
-      // リクエストパラメータを再作成
+      // Re-create request parameters
       const { commandParams } = await this.prepareCommandParameters(props)
 
-      // コマンドクラスに応じて適切なインスタンスを作成
+      // Create appropriate instance based on command class
       if (CommandClass === ConverseCommand) {
         const command = new ConverseCommand(commandParams)
         return (await alternateClient.send(command)) as T
@@ -423,7 +409,7 @@ export class ConverseService {
         errorMessage: alternateError?.message,
         stack: alternateError?.stack
       })
-      return null // 別リージョンでもエラーの場合は null を返し、通常の再試行へ
+      return null // If error in alternate region, return null for normal retry
     }
   }
 }

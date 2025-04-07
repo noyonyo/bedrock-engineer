@@ -18,11 +18,11 @@ export class ChatSessionManager {
       throw new Error('userDataPath is not set in store')
     }
 
-    // セッションファイルを保存するディレクトリを作成
+    // Create directory for storing session files
     this.sessionsDir = path.join(userDataPath, 'chat-sessions')
     fs.mkdirSync(this.sessionsDir, { recursive: true })
 
-    // メタデータ用のストアを初期化
+    // Initialize metadata store
     this.metadataStore = new Store({
       name: 'chat-sessions-meta',
       defaults: {
@@ -31,7 +31,7 @@ export class ChatSessionManager {
       }
     })
 
-    // 初回起動時またはメタデータが空の場合、既存のセッションからメタデータを生成
+    // On first launch or when metadata is empty, generate metadata from existing sessions
     this.initializeMetadata()
   }
 
@@ -151,7 +151,7 @@ export class ChatSessionManager {
     try {
       fs.unlinkSync(filePath)
 
-      // メタデータからも削除
+      // Delete from metadata as well
       const metadata = this.metadataStore.get('metadata')
       delete metadata[sessionId]
       this.metadataStore.set('metadata', metadata)
@@ -168,7 +168,7 @@ export class ChatSessionManager {
 
   deleteAllSessions(): void {
     try {
-      // セッションディレクトリ内のすべてのJSONファイルを削除
+      // Delete all JSON files in the session directory
       const files = fs.readdirSync(this.sessionsDir)
       for (const file of files) {
         if (file.endsWith('.json')) {
@@ -177,7 +177,7 @@ export class ChatSessionManager {
         }
       }
 
-      // メタデータをリセット
+      // Reset metadata
       this.metadataStore.set('metadata', {})
       this.metadataStore.set('recentSessions', [])
       this.metadataStore.delete('activeSessionId')
@@ -201,7 +201,7 @@ export class ChatSessionManager {
       .map((id) => metadata[id])
       .filter((meta): meta is SessionMetadata => {
         if (!meta) return false
-        // セッションファイルが実際に存在することを確認
+        // Verify that the session file actually exists
         const filePath = this.getSessionFilePath(meta.id)
         return fs.existsSync(filePath)
       })
@@ -212,7 +212,7 @@ export class ChatSessionManager {
     const metadata = this.metadataStore.get('metadata')
     return Object.values(metadata)
       .filter((meta) => {
-        // メタデータが存在し、対応するファイルも存在することを確認
+        // Verify that metadata exists and corresponding file exists
         const filePath = this.getSessionFilePath(meta.id)
         return fs.existsSync(filePath)
       })
@@ -236,17 +236,17 @@ export class ChatSessionManager {
     const session = this.readSessionFile(sessionId)
     if (!session) return
 
-    // 指定されたインデックスが有効な範囲内かチェック
+    // Check if the specified index is within valid range
     if (messageIndex < 0 || messageIndex >= session.messages.length) {
       console.error(`Invalid message index: ${messageIndex}`)
       return
     }
 
-    // メッセージを更新
+    // Update the message
     session.messages[messageIndex] = updatedMessage
     session.updatedAt = Date.now()
 
-    // ファイルとメタデータを更新
+    // Update file and metadata
     await this.writeSessionFile(sessionId, session)
     this.updateMetadata(sessionId, session)
   }
@@ -255,17 +255,17 @@ export class ChatSessionManager {
     const session = this.readSessionFile(sessionId)
     if (!session) return
 
-    // 指定されたインデックスが有効な範囲内かチェック
+    // Check if the specified index is within valid range
     if (messageIndex < 0 || messageIndex >= session.messages.length) {
       console.error(`Invalid message index: ${messageIndex}`)
       return
     }
 
-    // メッセージを削除
+    // Delete the message
     session.messages.splice(messageIndex, 1)
     session.updatedAt = Date.now()
 
-    // ファイルとメタデータを更新
+    // Update file and metadata
     await this.writeSessionFile(sessionId, session)
     this.updateMetadata(sessionId, session)
   }

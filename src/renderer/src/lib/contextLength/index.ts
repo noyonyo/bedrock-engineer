@@ -1,28 +1,26 @@
 import { Message } from '@aws-sdk/client-bedrock-runtime'
 
 /**
- * コンテキストの長さを制限し、重要なメッセージを保持する関数
+ * Function to limit the length of the context and retain important messages
+ * This function retains messages that meet the following conditions:
+ * 1. The latest `contextLength` number of messages
+ * 2. Messages necessary to maintain pairs of ToolUse and ToolResult
+ * 3. Messages containing reasoningContent
  *
- * この関数は以下の条件を満たすメッセージを保持します：
- * 1. 最新の `contextLength` 件のメッセージ
- * 2. ToolUseとToolResultのペアを維持するために必要なメッセージ
- * 3. reasoningContent を含むメッセージ
- * 4. reasoningContent を含むメッセージに関連する ToolUse と ToolResult のペア
- *
- * @param messages 全てのメッセージ配列
- * @param contextLength 保持するコンテキストの長さ
- * @returns 制限されたコンテキストを持つメッセージ配列
+ * @param messages Array of all messages
+ * @param contextLength Length of context to retain
+ * @returns Array of messages with limited context
  */
 export function limitContextLength(messages: Message[], contextLength: number): Message[] {
   if (!contextLength || contextLength <= 0 || messages.length <= contextLength) {
     return messages
   }
 
-  // ToolUseとToolResultのペアを特定するためのマップ
+  // Map to identify pairs of ToolUse and ToolResult
   const toolUseIdMap = new Map<string, boolean>()
   const toolResultIdMap = new Map<string, boolean>()
 
-  // 最新のメッセージから必要なToolUseIdとToolResultIdを収集
+  // Collect necessary ToolUseId and ToolResultId from the latest messages
   const recentMessages = messages.slice(-contextLength)
   recentMessages.forEach((message) => {
     if (message.content) {
@@ -37,7 +35,7 @@ export function limitContextLength(messages: Message[], contextLength: number): 
     }
   })
 
-  // reasoningContent を含むメッセージと、関連する ToolUse のIDを収集
+  // Collect messages containing reasoningContent and related ToolUse IDs
   const reasoningToolIds = new Set<string>()
   messages.forEach((message) => {
     if (message.content) {
@@ -52,7 +50,7 @@ export function limitContextLength(messages: Message[], contextLength: number): 
     }
   })
 
-  // 古いメッセージから必要なメッセージを見つける
+  // Find necessary messages from older messages
   const olderMessages = messages.slice(0, -contextLength)
   const requiredOlderMessages = olderMessages.filter((message) => {
     if (!message.content) return false
@@ -63,7 +61,7 @@ export function limitContextLength(messages: Message[], contextLength: number): 
         return true
       }
 
-      // ToolResultに対応するToolUseが最新メッセージまたはreasoningContentに含まれている場合
+      // If ToolResult corresponds to ToolUse in the latest messages or reasoningContent
       if (
         block.toolResult?.toolUseId &&
         (toolUseIdMap.has(block.toolResult.toolUseId) ||
@@ -72,12 +70,12 @@ export function limitContextLength(messages: Message[], contextLength: number): 
         return true
       }
 
-      // ToolUseに対応するToolResultが最新メッセージに含まれている場合
+      // If ToolUse corresponds to ToolResult in the latest messages
       if (block.toolUse?.toolUseId && toolResultIdMap.has(block.toolUse.toolUseId)) {
         return true
       }
 
-      // reasoningContent に関連する ToolUse
+      // ToolUse related to reasoningContent
       if (block.toolUse?.toolUseId && reasoningToolIds.has(block.toolUse.toolUseId)) {
         return true
       }
@@ -86,6 +84,6 @@ export function limitContextLength(messages: Message[], contextLength: number): 
     })
   })
 
-  // 必要なメッセージと最新のメッセージを結合
+  // Combine necessary messages and latest messages
   return [...requiredOlderMessages, ...recentMessages]
 }

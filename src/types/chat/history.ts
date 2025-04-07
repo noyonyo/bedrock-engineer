@@ -16,7 +16,7 @@ export interface ChatMessage {
     modelId?: string
     tools?: ToolState[]
     images?: AttachedImage[]
-    converseMetadata?: Record<string, any> // BedrockのConverseStreamMetadataEvent型のデータを保存するフィールド
+    converseMetadata?: Record<string, any> // Field to store Bedrock's ConverseStreamMetadataEvent type data
   }
 }
 
@@ -47,5 +47,5 @@ export interface ChatHistoryStore {
     [key: string]: ChatSession
   }
   activeSessionId?: string
-  recentSessions: string[] // 最近使用したセッションID（最大10個）
+  recentSessions: string[] // Recently used session IDs (max 10)
 }

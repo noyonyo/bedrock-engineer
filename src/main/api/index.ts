@@ -36,7 +36,7 @@ const errorHandler: ErrorRequestHandler = (err, req, res, _next) => {
   })
 }
 
-// アプリケーションで動作するようにdotenvを設定する
+// Configure dotenv to work in the application
 const api = express()
 
 const allowedOrigins = ['http://localhost:5173']

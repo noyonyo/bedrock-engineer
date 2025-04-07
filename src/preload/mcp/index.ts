@@ -16,30 +16,30 @@ const configSchema = z.object({
 
 let clients: { name: string; client: MCPClient }[] = []
 
-// キャッシュ用の変数
+// Cache variable
 let lastMcpServerConfigHash: string | null = null
 let lastMcpServerLength: number = 0
 let lastMcpServerNames: string[] = []
 let initializationInProgress: Promise<void> | null = null
 
 /**
- * サーバー設定の安定した比較用のハッシュ値を生成する
- * 構成の本質的な部分のみを考慮し、不要な変動要素を除外する
+ * Generate a stable hash value for server configuration comparison
+ * Consider only essential parts of the configuration and exclude unnecessary variable elements
  */
 const generateConfigHash = (servers: McpServerConfig[]): string => {
   if (!servers || servers.length === 0) {
     return 'empty'
   }
 
-  // 名前で並べ替えて安定した順序にする
+  // Sort by name for stable order
   const sortedServers = [...servers].sort((a, b) => a.name.localeCompare(b.name))
 
-  // 本質的な設定のみを含むオブジェクトの配列を作成
+  // Create an array of objects containing only essential settings
   const essentialConfigs = sortedServers.map((server) => ({
     name: server.name,
     command: server.command,
-    args: [...server.args], // 配列のコピーを作成して安定させる
-    // 環境変数がある場合のみ含める
+    args: [...server.args], // Copy array to stabilize
+    // Include env if it exists and is not empty
     ...(server.env && Object.keys(server.env).length > 0 ? { env: { ...server.env } } : {})
   }))
 
@@ -47,22 +47,22 @@ const generateConfigHash = (servers: McpServerConfig[]): string => {
 }
 
 /**
- * サーバー設定が実質的に変更されたかどうかをチェック
- * 名前のリストと設定ハッシュの両方を確認
+ * Check if server configuration has substantially changed
+ * Verify both the name list and configuration hash
  */
 const hasConfigChanged = (servers: McpServerConfig[] = []): boolean => {
-  // サーバー数が変わった場合は明らかに変更
+  // If server count changes, it's definitely changed
   if (servers.length !== lastMcpServerLength) {
     console.log(`MCP server count changed: ${lastMcpServerLength} -> ${servers.length}`)
     return true
   }
 
-  // 空のリストなら変更なしと見なす
+  // If empty list, consider it unchanged
   if (servers.length === 0 && lastMcpServerLength === 0) {
     return false
   }
 
-  // サーバー名のリストを作成して比較
+  // Create a list of server names and compare
   const currentNames = servers.map((s) => s.name).sort()
   const sameNames =
     currentNames.length === lastMcpServerNames.length &&
@@ -73,13 +73,13 @@ const hasConfigChanged = (servers: McpServerConfig[] = []): boolean => {
     return true
   }
 
-  // 詳細な設定内容のハッシュを比較
+  // Compare detailed configuration hash
   const configHash = generateConfigHash(servers)
   return configHash !== lastMcpServerConfigHash
 }
 
 /**
- * 現在の設定情報をキャッシュに保存
+ * Save current configuration information to cache
  */
 const updateConfigCache = (servers: McpServerConfig[] = []): void => {
   lastMcpServerConfigHash = generateConfigHash(servers)
@@ -88,41 +88,41 @@ const updateConfigCache = (servers: McpServerConfig[] = []): void => {
   console.log(`Updated MCP config cache with ${servers.length} server(s)`)
 }
 
-// エージェントからMCPサーバー設定を受け取る関数
+// Receive MCP server configuration from agent
 export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = []) => {
-  // 明示的なデバッグ情報の表示
+  // Explicit debug information display
   console.log(`initMcpFromAgentConfig called with ${mcpServers.length} server(s)`)
 
-  // 変更があるかどうか確認
+  // Check if there are any changes
   if (!hasConfigChanged(mcpServers)) {
     console.log('MCP configuration unchanged, skipping initialization')
     return
   }
 
-  // 初期化が進行中なら待機
+  // If initialization is in progress, wait
   if (initializationInProgress) {
     console.log('MCP initialization already in progress, waiting...')
     try {
       await initializationInProgress
       console.log('Finished waiting for previous MCP initialization')
 
-      // 待機中に他のプロセスが同じ構成で初期化を完了した場合はスキップ
+      // If another process completed initialization with the same configuration during wait, skip
       if (!hasConfigChanged(mcpServers)) {
         console.log('MCP already initialized with same configuration during wait')
         return
       }
     } catch (error) {
       console.log('Previous MCP initialization failed:', error)
-      // エラーがあっても継続して新しい初期化を開始
+      // Continue even if there's an error to start new initialization
     }
   }
 
   console.log(`Starting MCP initialization with ${mcpServers.length} server(s)...`)
 
-  // 初期化処理を開始
+  // Start initialization process
   try {
     initializationInProgress = (async () => {
-      // 既存のクライアントをクリーンアップ
+      // Clean up existing clients
       console.log(`Cleaning up ${clients.length} existing MCP clients...`)
       await Promise.all(
         clients.map(async ({ client }) => {
@@ -135,14 +135,14 @@ export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = [])
       )
       clients = []
 
-      // 新しいクライアントを作成
+      // Create new clients
       if (mcpServers.length === 0) {
         console.log('No MCP servers configured for this agent')
         updateConfigCache(mcpServers)
         return
       }
 
-      // McpServerConfig[] 形式から configSchema 用のフォーマットに変換
+      // Convert McpServerConfig[] format to configSchema format
       const configData = {
         mcpServers: mcpServers.reduce(
           (acc, server) => {
@@ -157,7 +157,7 @@ export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = [])
         )
       }
 
-      // configSchema によるバリデーション
+      // Validation using configSchema
       const { success, error } = configSchema.safeParse(configData)
       if (!success) {
         console.error('Invalid MCP server configuration:', error)
@@ -186,7 +186,7 @@ export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = [])
         )
       ).filter((c): c is { name: string; client: MCPClient } => c != null)
 
-      // 初期化が完了したら構成ハッシュを更新
+      // Update configuration hash after initialization is complete
       updateConfigCache(mcpServers)
       console.log(`MCP initialization complete with ${clients.length} server(s)`)
     })()
@@ -194,10 +194,11 @@ export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = [])
     await initializationInProgress
   } catch (error) {
     console.error('Error during MCP initialization:', error)
-    // エラーが発生した場合はキャッシュをクリアして次回再試行できるようにする
+    // Clear cache in case of error to allow retry next time
     lastMcpServerConfigHash = null
     lastMcpServerLength = 0
     lastMcpServerNames = []
+    updateConfigCache([])
     throw error
   } finally {
     initializationInProgress = null
@@ -205,18 +206,18 @@ export const initMcpFromAgentConfig = async (mcpServers: McpServerConfig[] = [])
 }
 
 export const getMcpToolSpecs = async (mcpServers?: McpServerConfig[]): Promise<Tool[]> => {
-  // MCPサーバー設定がない場合は空配列を返す
+  // Return an empty array if no MCP server configuration
   if (!mcpServers || mcpServers.length === 0) {
     return []
   }
 
-  // エージェント固有のMCPサーバー設定を使用する
+  // Use agent-specific MCP server configuration
   await initMcpFromAgentConfig(mcpServers)
 
+  // Add a prefix to tools to avoid name collisions
   return clients.flatMap(({ client }) => {
-    // ツールに接頭辞を付けて返す（名前の衝突を避けるため）
+    // Deep copy to avoid modifying the original object
     return client.tools.map((tool) => {
-      // ディープコピーして元のオブジェクトを変更しないようにする
       const clonedTool = JSON.parse(JSON.stringify(tool))
       if (clonedTool.toolSpec?.name) {
         clonedTool.toolSpec.name = `mcp_${clonedTool.toolSpec.name}`
@@ -231,7 +232,7 @@ export const tryExecuteMcpTool = async (
   input: any,
   mcpServers?: McpServerConfig[]
 ) => {
-  // MCPサーバー設定がない場合はツールが見つからない旨を返す
+  // Return not found if no MCP server configuration
   if (!mcpServers || mcpServers.length === 0) {
     return {
       found: false,
@@ -243,10 +244,10 @@ export const tryExecuteMcpTool = async (
     }
   }
 
-  // エージェント固有のMCPサーバー設定を使用する
+  // Use agent-specific MCP server configuration
   await initMcpFromAgentConfig(mcpServers)
 
-  // ここでは素のツール名（mcp_ プレフィックスなし）を使用
+  // Use raw tool name (without mcp_ prefix)
   const client = clients.find(({ client }) =>
     client.tools.find((tool) => tool.toolSpec?.name == toolName)
   )
@@ -262,7 +263,7 @@ export const tryExecuteMcpTool = async (
   }
 
   try {
-    // inputの型からmcp_ プレフィックスを取り除いたツール名を使用
+    // Use tool name without mcp_ prefix from input type
     const params = { ...input }
     const res = await client.client.callTool(toolName, params)
 
@@ -288,9 +289,9 @@ export const tryExecuteMcpTool = async (
 }
 
 /**
- * MCPサーバーに接続テストを行う関数
- * @param mcpServer テスト対象のサーバー設定
- * @return テスト結果のオブジェクト
+ * Function to test connection to MCP server
+ * @param mcpServer Server configuration to test
+ * @return Test result object
  */
 export const testMcpServerConnection = async (
   mcpServer: McpServerConfig
@@ -309,17 +310,17 @@ export const testMcpServerConnection = async (
   const startTime = Date.now()
 
   try {
-    // 単一サーバー用の一時的なクライアントを作成
+    // Create a temporary client for a single server
     const client = await MCPClient.fromCommand(mcpServer.command, mcpServer.args, mcpServer.env)
 
-    // ツール情報を取得
+    // Get tool information
     const tools = client.tools || []
-    // 型エラー修正: undefined を除外して string[] に変換
+    // Type error fix: exclude undefined and convert to string[]
     const toolNames = tools
       .map((t) => t.toolSpec?.name)
       .filter((name): name is string => Boolean(name))
 
-    // クライアントのクリーンアップ
+    // Clean up client
     await client.cleanup()
 
     const endTime = Date.now()
@@ -334,10 +335,10 @@ export const testMcpServerConnection = async (
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
-    // 未使用変数を削除
+    // Remove unused variable
     // const errorStack = error instanceof Error ? error.stack : undefined
 
-    // 詳細なエラー分析
+    // Detailed error analysis
     const errorAnalysis = analyzeServerError(errorMessage)
 
     return {
@@ -352,9 +353,9 @@ export const testMcpServerConnection = async (
 }
 
 /**
- * 複数のMCPサーバーに対して接続テストを行う関数
- * @param mcpServers テスト対象のサーバー設定配列
- * @return サーバー名をキーとしたテスト結果のオブジェクト
+ * Function to test connection to multiple MCP servers
+ * @param mcpServers Array of server configurations to test
+ * @return Test result object keyed by server name
  */
 export const testAllMcpServerConnections = async (
   mcpServers: McpServerConfig[]
@@ -374,14 +375,14 @@ export const testAllMcpServerConnections = async (
     }
   >
 > => {
-  // MCPサーバー設定がない場合は空オブジェクトを返す
+  // Return empty object if no MCP server configuration
   if (!mcpServers || mcpServers.length === 0) {
     return {}
   }
 
   const results: Record<string, any> = {}
 
-  // 逐次処理（直列）でテスト実行
+  // Execute tests sequentially (serially)
   for (const server of mcpServers) {
     results[server.name] = await testMcpServerConnection(server)
   }
@@ -390,7 +391,7 @@ export const testAllMcpServerConnections = async (
 }
 
 /**
- * エラーメッセージを分析して原因と対策を提示する
+ * Analyze error message and suggest cause and solution
  */
 function analyzeServerError(errorMessage: string): string {
   const lowerError = errorMessage.toLowerCase()
@@ -412,4 +413,22 @@ function analyzeServerError(errorMessage: string): string {
   }
 
   return 'Please make sure your command and arguments are correct.'
+}
+
+export const getMcpTools = async (mcpServers: McpServerConfig[] = []): Promise<ToolState[]> => {
+  // Return empty array if no MCP server configuration
+  if (!mcpServers || mcpServers.length === 0) {
+    return []
+  }
+
+  // Use agent-specific MCP server configuration
+  await initMcpFromAgentConfig(mcpServers)
+
+  // Add prefix to tools (to avoid name collisions)
+  return clients.flatMap(({ client }) =>
+    client.client.getTools().map((tool) => ({
+      ...tool,
+      name: `${client.name}:${tool.name}`
+    }))
+  )
 }

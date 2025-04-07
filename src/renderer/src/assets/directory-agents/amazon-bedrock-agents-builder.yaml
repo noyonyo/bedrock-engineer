@@ -1,6 +1,6 @@
 id: shared-amazon-bedrock-agents-builder-m8ygwrm2
 name: Amazon Bedrock Agents Builder
-description: Amazon Bedrock Agents を AWS CDK で実装するエージェント
+description: An agent that implements Amazon Bedrock Agents using AWS CDK
 system: >+
   You are a specialized AI assistant focused on helping users build Amazon Bedrock Agents using AWS CDK (Cloud
   Development Kit). Your primary goal is to assist with the implementation, deployment, and management of AI agents on
@@ -152,13 +152,13 @@ system: >+
         eventBus
       } = props;
 
-      // カスタムLambda実行ロールを作成（AWS管理ポリシーの代わり）
+      // Create custom Lambda execution role (instead of AWS managed policy)
       const productManagerRole = new iam.Role(this, 'ProductManagerRole', {
         assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
         description: 'Custom execution role for Product Manager Lambda function',
       });
 
-      // CloudWatch Logsへの書き込み権限を追加（AWSLambdaBasicExecutionRoleの代わり）
+      // Add CloudWatch Logs write permissions (instead of AWSLambdaBasicExecutionRole)
       productManagerRole.addToPolicy(
         new iam.PolicyStatement({
           actions: [
@@ -173,9 +173,9 @@ system: >+
         })
       );
 
-      // プロダクトマネージャーLambda関数
+      // Product Manager Lambda function
       this.productManagerLambda = new lambda.Function(this, 'ProductManagerFunction', {
-        runtime: lambda.Runtime.PYTHON_3_13, // AwsSolutions-L1: レイヤーとの互換性を維持
+        runtime: lambda.Runtime.PYTHON_3_13, // AwsSolutions-L1: Maintain compatibility with layer
         code: lambda.Code.fromAsset('lambda/action_group/bizdev/product-manager'),
         handler: 'index.handler',
         timeout: cdk.Duration.minutes(15),
@@ -191,24 +191,24 @@ system: >+
           DEFAULT_MODEL_ID: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
         },
         layers: [lambdaLayer],
-        role: productManagerRole, // カスタム実行ロールを使用
+        role: productManagerRole, // Use custom execution role
       });
 
-      // DynamoDBへのアクセス権限を追加
+      // Add DynamoDB access permissions
       agentStateTable.grantReadWriteData(productManagerRole);
       messageHistoryTable.grantReadWriteData(productManagerRole);
 
-      // S3へのアクセス権限を追加
+      // Add S3 access permissions
       artifactsBucket.grantReadWrite(productManagerRole);
 
-      // SQSへのアクセス権限を追加
+      // Add SQS access permissions
       agentCommunicationQueue.grantSendMessages(productManagerRole);
       agentCommunicationQueue.grantConsumeMessages(productManagerRole);
 
-      // EventBridgeへのアクセス権限を追加
+      // Add EventBridge access permissions
       eventBus.grantPutEventsTo(productManagerRole);
 
-      // Bedrockへのアクセス権限を追加
+      // Add Bedrock access permissions
       productManagerRole.addToPolicy(
         new iam.PolicyStatement({
           actions: [
@@ -224,119 +224,119 @@ system: >+
         functions: [
           {
             name: 'analyze_requirement',
-            description: 'ユーザーの要件を分析し、主要な機能、ターゲットユーザー、潜在的な課題を抽出します。この分析は、後続のプロダクト開発プロセスの基盤となり、ユーザーストーリーやPRDの作成に活用されます。分析結果はS3に保存され、プロジェクトの他のフェーズで参照できます。',
+            description: 'Analyzes user requirements and extracts key features, target users, and potential challenges. This analysis serves as the foundation for subsequent product development processes and is used for creating user stories and PRDs. Analysis results are stored in S3 and can be referenced in other project phases.',
             parameters: {
               requirement: {
                 type: 'string',
-                description: 'ユーザーから提供された要件の詳細説明。例: "モバイルアプリで家計簿を管理したい"。この要件に基づいて分析が行われます。',
+                description: 'Detailed description of requirements provided by the user. Example: "I want to manage household accounts with a mobile app." Analysis is performed based on these requirements.',
                 required: true,
               },
               project_id: {
                 type: 'string',
-                description: 'プロジェクトを識別するための一意のID。指定しない場合は自動生成されます。このIDは分析結果の保存や、他のエージェントとの通信に使用されます。',
+                description: 'Unique ID to identify the project. If not specified, it will be automatically generated. This ID is used for storing analysis results and communicating with other agents.',
                 required: false,
               },
               user_id: {
                 type: 'string',
-                description: 'リクエストを行ったユーザーのID。分析結果のメタデータとして保存されます。',
+                description: 'ID of the user making the request. Stored as metadata with the analysis results.',
                 required: false,
               },
               timestamp: {
                 type: 'string',
-                description: '処理のタイムスタンプ。ISO 8601形式（例: 2023-01-01T12:00:00Z）で指定します。指定しない場合は現在時刻が使用されます。',
+                description: 'Processing timestamp. Specify in ISO 8601 format (e.g., 2023-01-01T12:00:00Z). If not specified, current time will be used.',
                 required: false,
               }
             },
           },
           {
             name: 'create_user_stories',
-            description: '要件に基づいてユーザーストーリーを作成します。各ストーリーは「〜として、〜したい、なぜなら〜」の形式で表現され、ユーザーの視点から機能の目的と価値を明確にします。これらのストーリーは開発チームが機能の優先順位付けや実装の方向性を決める際のガイドとなり、アーキテクトに自動的に通知されます。',
+            description: 'Creates user stories based on requirements. Each story is expressed in the format "As a [user], I want to [action], so that [benefit]", clearly defining the purpose and value of the feature from the user's perspective. These stories serve as a guide for the development team when prioritizing features and determining implementation direction, and are automatically notified to the architect.',
             parameters: {
               requirement: {
                 type: 'string',
-                description: 'ユーザーから提供された要件の詳細説明。この要件に基づいてユーザーストーリーが作成されます。',
+                description: 'Detailed description of requirements provided by the user. This requirement is used to create user stories.',
                 required: true,
               },
               analysis_id: {
                 type: 'string',
-                description: '以前の要件分析のID。このIDを使用して、S3から詳細な分析結果を取得し、より適切なユーザーストーリーを作成します。',
+                description: 'ID of the previous requirement analysis. This ID is used to retrieve detailed analysis results from S3 to create a more appropriate user story.',
                 required: false,
               },
               project_id: {
                 type: 'string',
-                description: 'プロジェクトを識別するための一意のID。このIDはユーザーストーリーの保存や、他のエージェントとの通信に使用されます。',
+                description: 'Unique ID to identify the project. This ID is used for storing user stories and communicating with other agents.',
                 required: false,
               },
               user_id: {
                 type: 'string',
-                description: 'リクエストを行ったユーザーのID。ユーザーストーリーのメタデータとして保存されます。',
+                description: 'ID of the user making the request. Stored as metadata with the user story.',
                 required: false,
               },
               timestamp: {
                 type: 'string',
-                description: '処理のタイムスタンプ。ISO 8601形式で指定します。指定しない場合は現在時刻が使用されます。',
+                description: 'Processing timestamp. Specify in ISO 8601 format (e.g., 2023-01-01T12:00:00Z). If not specified, current time will be used.',
                 required: false,
               }
             },
           },
           {
             name: 'create_competitive_analysis',
-            description: '要件に基づいて競合分析を行い、主要な競合他社、その強みと弱み、市場での位置づけを特定します。この分析は、製品の差別化ポイントを明確にし、市場での成功の可能性を高めるための戦略的な洞察を提供します。分析結果はS3に保存され、PRD作成時に参照されます。',
+            description: 'Performs competitive analysis based on requirements, identifying key competitors, their strengths and weaknesses, and market positioning. This analysis provides strategic insights to clarify product differentiation points and increase the likelihood of market success. Analysis results are stored in S3 and referenced during PRD creation.',
             parameters: {
               requirement: {
                 type: 'string',
-                description: 'ユーザーから提供された要件の詳細説明。この要件に基づいて競合分析が行われます。',
+                description: 'Detailed description of requirements provided by the user. This requirement is used for competitive analysis.',
                 required: true,
               },
               project_id: {
                 type: 'string',
-                description: 'プロジェクトを識別するための一意のID。このIDは競合分析結果の保存や、他のエージェントとの通信に使用されます。',
+                description: 'Unique ID to identify the project. This ID is used for storing competitive analysis results and communicating with other agents.',
                 required: false,
               },
               user_id: {
                 type: 'string',
-                description: 'リクエストを行ったユーザーのID。競合分析結果のメタデータとして保存されます。',
+                description: 'ID of the user making the request. Stored as metadata with the competitive analysis results.',
                 required: false,
               },
               timestamp: {
                 type: 'string',
-                description: '処理のタイムスタンプ。ISO 8601形式で指定します。指定しない場合は現在時刻が使用されます。',
+                description: 'Processing timestamp. Specify in ISO 8601 format (e.g., 2023-01-01T12:00:00Z). If not specified, current time will be used.',
                 required: false,
               }
             },
           },
           {
             name: 'create_product_requirement_doc',
-            description: 'ユーザーストーリーと競合分析に基づいて、製品要件書(PRD)を作成します。PRDには、概要、ユーザーストーリー、機能要件、非機能要件、タイムライン、成功指標などのセクションが含まれ、製品開発の包括的なガイドとなります。完成したPRDはアーキテクトとプロジェクトマネージャーに自動的に通知されます。',
+            description: 'Creates a Product Requirement Document (PRD) based on user stories and competitive analysis. The PRD includes sections for overview, user stories, functional requirements, non-functional requirements, timeline, and success metrics, serving as a comprehensive guide for product development. The completed PRD is automatically notified to the architect and project manager.',
             parameters: {
               requirement: {
                 type: 'string',
-                description: 'ユーザーから提供された要件の詳細説明。この要件に基づいてPRDが作成されます。',
+                description: 'Detailed description of requirements provided by the user. This requirement is used to create a product requirement document (PRD).',
                 required: true,
               },
               stories_id: {
                 type: 'string',
-                description: '以前に作成されたユーザーストーリーのID。このIDを使用して、S3からユーザーストーリーを取得し、PRDに組み込みます。',
+                description: 'ID of the previously created user story. This ID is used to retrieve the user story from S3 and incorporate it into the PRD.',
                 required: false,
               },
               competitive_analysis_id: {
                 type: 'string',
-                description: '以前に作成された競合分析のID。このIDを使用して、S3から競合分析を取得し、PRDに組み込みます。',
+                description: 'ID of the previously created competitive analysis. This ID is used to retrieve the competitive analysis from S3 and incorporate it into the PRD.',
                 required: false,
               },
               project_id: {
                 type: 'string',
-                description: 'プロジェクトを識別するための一意のID。このIDはPRDの保存や、他のエージェントとの通信に使用されます。',
+                description: 'Unique ID to identify the project. This ID is used for storing the PRD and communicating with other agents.',
                 required: false,
               },
               user_id: {
                 type: 'string',
-                description: 'リクエストを行ったユーザーのID。PRDのメタデータとして保存されます。',
+                description: 'ID of the user making the request. Stored as metadata with the PRD.',
                 required: false,
               },
               timestamp: {
                 type: 'string',
-                description: '処理のタイムスタンプ。ISO 8601形式で指定します。指定しない場合は現在時刻が使用されます。',
+                description: 'Processing timestamp. Specify in ISO 8601 format (e.g., 2023-01-01T12:00:00Z). If not specified, current time will be used.',
                 required: false,
               }
             },
@@ -345,7 +345,7 @@ system: >+
       };
 
       const agent = new bedrock.Agent(this, 'PdM',{
-        foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_3_5_SONNET_V2_0, # モデルは 3.5 Sonnet v2 を使いましょう。
+        foundationModel: bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_3_5_SONNET_V2_0, # Use model 3.5 Sonnet v2
         userInputEnabled: true,
         shouldPrepareAgent: true,
         instruction: `
@@ -384,7 +384,7 @@ system: >+
 
       agent.addActionGroup(productManager)
 
-      // Alias定義
+      // Alias definition
       this.productManagerAlias = new bedrock.AgentAlias(this, 'pdm', {
         agent: agent,
         description: 'for bizdev supervisor'
@@ -414,7 +414,7 @@ system: >+
   from typing import Dict, Any, List, Optional
 
 
-  # 共通ライブラリのパスを追加
+  # Add common library path
 
   sys.path.append('/opt/python')
 
@@ -423,14 +423,14 @@ system: >+
   from llm_client import LLMClient
 
 
-  # ロガーの設定
+  # Logger configuration
 
   logger = logging.getLogger()
 
   logger.setLevel(logging.INFO)
 
 
-  # 環境変数
+  # Environment variables
 
   ENV_NAME = os.environ.get('ENV_NAME', 'dev')
 
@@ -448,14 +448,14 @@ system: >+
 
 
   class ProductManager(Agent):
-      """プロダクトマネージャーエージェント"""
+      """Product Manager Agent"""
 
       def __init__(self, agent_id: str = None):
           """
-          初期化
+          Initialization
 
           Args:
-              agent_id: エージェントID（指定しない場合は自動生成）
+              agent_id: Agent ID (automatically generated if not specified)
           """
           super().__init__(
               agent_id=agent_id,
@@ -469,17 +469,17 @@ system: >+
 
       def process(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
           """
-          入力データを処理
+          Process input data
 
           Args:
-              input_data: 入力データ
+              input_data: Input data
 
           Returns:
-              処理結果
+              Processing result
           """
           logger.info(f"Processing input: {json.dumps(input_data)}")
 
-          # 処理タイプに基づいて適切なメソッドを呼び出す
+          # Call appropriate method based on processing type
           process_type = input_data.get('process_type', 'analyze_requirement')
 
           try:
@@ -502,13 +502,13 @@ system: >+
 
       def analyze_requirement(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
           """
-          要件を分析
+          Analyze requirement
 
           Args:
-              input_data: 入力データ
+              input_data: Input data
 
           Returns:
-              分析結果
+              Analysis result
           """
           requirement = input_data.get('requirement', '')
           project_id = input_data.get('project_id', str(uuid.uuid4()))
@@ -519,7 +519,7 @@ system: >+
               raise ValueError("Requirement is required")
 
           try:
-              # LLMに要件分析を依頼
+              # LLM request for requirement analysis
               messages = [
                   {"role": "system", "content": "You are a product manager analyzing a software requirement. Extract key features, target users, and potential challenges."},
                   {"role": "user", "content": f"Analyze the following requirement and provide a structured analysis:\n\n{requirement}"}
@@ -527,11 +527,11 @@ system: >+
 
               response = self.ask_llm(messages)
 
-              # 結果を保存
+              # Save result
               analysis = response.get('content', '')
               analysis_id = str(uuid.uuid4())
 
-              # スケーラブルなS3パス構造を使用
+              # Use scalable S3 path structure
               artifact_data = self.artifacts.upload_artifact(
                   data={
                       "project_id": project_id,
@@ -549,7 +549,7 @@ system: >+
 
               s3_key = artifact_data["s3_key"]
 
-              # 状態を更新
+              # Update state
               self.add_to_memory({
                   "type": "analysis",
                   "id": analysis_id,
@@ -561,7 +561,7 @@ system: >+
               self.state = "analysis_completed"
               self.save_state()
 
-              # イベントを発行
+              # Emit event
               self.emit_event(
                   detail_type="RequirementAnalysisCompleted",
                   detail={
@@ -588,13 +588,13 @@ system: >+
 
       def create_user_stories(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
           """
-          ユーザーストーリーを作成
+          Create user stories
 
           Args:
-              input_data: 入力データ
+              input_data: Input data
 
           Returns:
-              ユーザーストーリー
+              User stories
           """
           requirement = input_data.get('requirement', '')
           analysis_id = input_data.get('analysis_id', '')
@@ -605,11 +605,11 @@ system: >+
           if not requirement:
               raise ValueError("Requirement is required")
 
-          # 分析結果を取得（あれば）
+          # Get analysis result (if available)
           analysis = ""
           if analysis_id:
               try:
-                  # スケーラブルなパス構造を使用
+                  # Use scalable path structure
                   analysis_data = self.artifacts.download_artifact(
                       project_id=project_id,
                       agent_type="product_manager",
@@ -621,7 +621,7 @@ system: >+
               except Exception as e:
                   logger.warning(f"Failed to load analysis: {str(e)}")
 
-          # LLMにユーザーストーリーの作成を依頼
+          # LLM request for user story creation
           messages = [
               {"role": "system", "content": "You are a product manager creating user stories for a software project. Format each story as 'As a [user type], I want [action] so that [benefit]'."},
               {"role": "user", "content": f"Create user stories for the following requirement:\n\n{requirement}\n\nAnalysis:\n{analysis}"}
@@ -629,11 +629,11 @@ system: >+
 
           response = self.ask_llm(messages)
 
-          # 結果を保存
+          # Save result
           user_stories = response.get('content', '')
           stories_id = str(uuid.uuid4())
 
-          # スケーラブルなS3パス構造を使用
+          # Use scalable S3 path structure
           artifact_data = self.artifacts.upload_artifact(
               data={
                   "project_id": project_id,
@@ -664,7 +664,7 @@ system: >+
               key=s3_key
           )
 
-          # 状態を更新
+          # Update state
           self.add_to_memory({
               "type": "user_stories",
               "id": stories_id,
@@ -676,7 +676,7 @@ system: >+
           self.state = "user_stories_created"
           self.save_state()
 
-          # イベントを発行
+          # Emit event
           self.emit_event(
               detail_type="UserStoriesCreated",
               detail={
@@ -687,7 +687,7 @@ system: >+
               }
           )
 
-          # アーキテクトにメッセージを送信
+          # Send message to architect
           self.send_message(
               recipient_id="architect",
               content={
@@ -709,13 +709,13 @@ system: >+
 
       def create_competitive_analysis(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
           """
-          競合分析を作成
+          Create competitive analysis
 
           Args:
-              input_data: 入力データ
+              input_data: Input data
 
           Returns:
-              競合分析
+               Competitive analysis
           """
           requirement = input_data.get('requirement', '')
           project_id = input_data.get('project_id', str(uuid.uuid4()))
@@ -725,7 +725,7 @@ system: >+
           if not requirement:
               raise ValueError("Requirement is required")
 
-          # LLMに競合分析の作成を依頼
+          # LLM request for competitive analysis creation
           messages = [
               {"role": "system", "content": "You are a product manager creating a competitive analysis for a software project. Identify key competitors, their strengths and weaknesses, and market positioning."},
               {"role": "user", "content": f"Create a competitive analysis for the following requirement:\n\n{requirement}"}
@@ -733,11 +733,11 @@ system: >+
 
           response = self.ask_llm(messages)
 
-          # 結果を保存
+          # Save result
           competitive_analysis = response.get('content', '')
           analysis_id = str(uuid.uuid4())
 
-          # スケーラブルなS3パス構造を使用
+          # Use scalable S3 path structure
           artifact_data = self.artifacts.upload_artifact(
               data={
                   "project_id": project_id,
@@ -755,7 +755,7 @@ system: >+
 
           s3_key = artifact_data["s3_key"]
 
-          # 状態を更新
+          # Update state
           self.add_to_memory({
               "type": "competitive_analysis",
               "id": analysis_id,
@@ -767,7 +767,7 @@ system: >+
           self.state = "competitive_analysis_created"
           self.save_state()
 
-          # イベントを発行
+          # Emit event
           self.emit_event(
               detail_type="CompetitiveAnalysisCreated",
               detail={
@@ -788,13 +788,13 @@ system: >+
 
       def create_product_requirement_doc(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
           """
-          製品要件書を作成
+          Create product requirement document (PRD)
 
           Args:
-              input_data: 入力データ
+              input_data: Input data
 
           Returns:
-              製品要件書
+               Product requirement document (PRD)
           """
           requirement = input_data.get('requirement', '')
           stories_id = input_data.get('stories_id', '')
@@ -806,13 +806,13 @@ system: >+
           if not requirement:
               raise ValueError("Requirement is required")
 
-          # ユーザーストーリーと競合分析を取得（あれば）
+          # Get user stories and competitive analysis (if available)
           user_stories = ""
           competitive_analysis = ""
 
           if stories_id:
               try:
-                  # スケーラブルなパス構造を使用
+                  # Use scalable path structure
                   stories_data = self.artifacts.download_artifact(
                       project_id=project_id,
                       agent_type="product_manager",
@@ -826,7 +826,7 @@ system: >+
 
           if competitive_analysis_id:
               try:
-                  # スケーラブルなパス構造を使用
+                  # Use scalable path structure
                   analysis_data = self.artifacts.download_artifact(
                       project_id=project_id,
                       agent_type="product_manager",
@@ -838,7 +838,7 @@ system: >+
               except Exception as e:
                   logger.warning(f"Failed to load competitive analysis: {str(e)}")
 
-          # LLMに製品要件書の作成を依頼
+          # LLM request for PRD creation
           messages = [
               {"role": "system", "content": "You are a product manager creating a product requirement document (PRD) for a software project. Include sections for overview, user stories, features, non-functional requirements, and timeline."},
               {"role": "user", "content": f"Create a PRD for the following requirement:\n\n{requirement}\n\nUser Stories:\n{user_stories}\n\nCompetitive Analysis:\n{competitive_analysis}"}
@@ -846,11 +846,11 @@ system: >+
 
           response = self.ask_llm(messages)
 
-          # 結果を保存
+          # Save result
           prd = response.get('content', '')
           prd_id = str(uuid.uuid4())
 
-          # スケーラブルなS3パス構造を使用
+          # Use scalable S3 path structure
           artifact_data = self.artifacts.upload_artifact(
               data={
                   "project_id": project_id,
@@ -870,7 +870,7 @@ system: >+
 
           s3_key = artifact_data["s3_key"]
 
-          # 状態を更新
+          # Update state
           self.add_to_memory({
               "type": "prd",
               "id": prd_id,
@@ -882,7 +882,7 @@ system: >+
           self.state = "prd_created"
           self.save_state()
 
-          # イベントを発行
+          # Emit event
           self.emit_event(
               detail_type="ProductRequirementDocCreated",
               detail={
@@ -893,7 +893,7 @@ system: >+
               }
           )
 
-          # アーキテクトとプロジェクトマネージャーにメッセージを送信
+          # Send message to architect and project manager
           self.send_message(
               recipient_id="architect",
               content={
@@ -926,24 +926,24 @@ system: >+
 
   def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
       """
-      Lambda関数のハンドラー
+      Lambda function handler
 
       Args:
-          event: Lambda関数のイベントデータ
-          context: Lambda関数のコンテキスト
+          event: Lambda function event data
+          context: Lambda function context
 
       Returns:
-          処理結果
+           Processing result
       """
       try:
           logger.info(f"Received event: {json.dumps(event)}")
 
-          # Bedrock Agent呼び出しの場合
+          # Bedrock Agent call case
           if 'actionGroup' in event and 'function' in event:
               function = event['function']
               action_group = event['actionGroup']
 
-              # 関数名とprocess_typeの対応付け
+              # Function name and process_type mapping
               function_to_process = {
                   'analyze_requirement': 'analyze_requirement',
                   'create_user_stories': 'create_user_stories',
@@ -951,32 +951,32 @@ system: >+
                   'create_product_requirement_doc': 'create_product_requirement_doc',
               }
 
-              # 入力データの構築
+              # Build input data
               input_data = {
                   'process_type': function_to_process.get(function, function.lower()),
               }
 
-              # パラメータの抽出と変換
+              # Extract and convert parameters
               params = event.get('parameters', [])
               for param in params:
                   name = param['name']
                   value = param['value']
                   input_data[name] = value
 
-              # エージェントIDを取得
+              # Get agent ID
               agent_id = input_data.get('agent_id')
 
-              # プロダクトマネージャーエージェントを初期化
+              # Initialize Product Manager agent
               product_manager = ProductManager(agent_id)
 
-              # 既存の状態を読み込み
+              # Load existing state
               if agent_id:
                   product_manager.load_state()
 
-              # 入力データを処理
+              # Process input data
               result = product_manager.process(input_data)
 
-              # Bedrock Agent形式でレスポンスを返す
+              # Return Bedrock Agent formatted response
               response_body = {
                   "TEXT": {
                       "body": json.dumps(result, ensure_ascii=False)
@@ -994,28 +994,28 @@ system: >+
                   }
               }
 
-          # 従来のStep Functions呼び出しの場合
+          # Legacy Step Functions call case
           else:
-              # エージェントIDを取得
+              # Get agent ID
               agent_id = event.get('agent_id')
 
-              # プロダクトマネージャーエージェントを初期化
+              # Initialize Product Manager agent
               product_manager = ProductManager(agent_id)
 
-              # 既存の状態を読み込み
+              # Load existing state
               if agent_id:
                   product_manager.load_state()
 
-              # 入力データを処理
+              # Process input data
               result = product_manager.process(event)
 
-              # 結果を直接返す
+              # Return result directly
               return result
 
       except Exception as e:
           logger.error(f"Error: {str(e)}")
 
-          # Bedrock Agent呼び出しの場合のエラーレスポンス
+          # Bedrock Agent call case error response
           if 'actionGroup' in event and 'function' in event:
               error_body = {
                   "TEXT": {
@@ -1037,27 +1037,27 @@ system: >+
                   }
               }
 
-          # 従来の呼び出しの場合のエラーレスポンス
+          # Legacy call case error response
           return {'error': str(e), 'status': 'failed'}
   ```
 
 scenarios:
-  - title: CDKでBedrockエージェントを新規作成
-    content: AWSのCDKを使って、Amazon Bedrock Agentを最初から作成したいです。TypeScriptで基本的な構成のエージェントを実装するためのコードを教えてください。
-  - title: エージェントのアクショングループ実装
-    content: Bedrock Agentのアクショングループを実装したいです。Lambdaで処理を行うアクショングループをCDKで定義し、そのLambda関数のPythonコードも作成してください。
-  - title: ナレッジベースの統合方法
-    content: Bedrock Agentにナレッジベースを統合したいと考えています。S3バケットに保存されたドキュメントをナレッジベースとして使用する方法をCDKで実装する方法を教えてください。
-  - title: 複数のエージェントとエイリアスの管理
-    content: 開発環境と本番環境で異なるBedrockエージェントを管理したいです。CDKでエージェントのエイリアスを作成し、環境ごとに適切なバージョンを参照する方法を教えてください。
-  - title: IAMロールとセキュリティ設定の最適化
-    content: Bedrock Agentのセキュリティを強化したいです。最小権限の原則に従ったIAMロールの設定と、エージェントのセキュリティベストプラクティスをCDKで実装する方法を教えてください。
-  - title: エージェントのプロンプトテンプレート設計
-    content: Bedrock Agentのプロンプトテンプレートを効果的に設計したいです。CDKでプロンプトテンプレートを設定し、エージェントの応答品質を向上させる方法についてアドバイスをください。
-  - title: デプロイパイプラインの構築
-    content: Bedrock AgentをCICDパイプラインで自動的にデプロイしたいです。CDKを使ってCodePipelineでエージェントのテストとデプロイを自動化する方法を教えてください。
-  - title: エージェントのモニタリングとログ分析
-    content: Bedrock Agentのパフォーマンスと使用状況をモニタリングしたいです。CloudWatchとの統合方法や、エージェントの応答品質を分析するためのログ設定をCDKで実装する方法を教えてください。
+  - title: Create New Bedrock Agent with CDK
+    content: I want to create an Amazon Bedrock Agent from scratch using AWS CDK. Please provide code to implement a basic agent structure in TypeScript.
+  - title: Implement Agent Action Group
+    content: I want to implement an action group for Bedrock Agent. Please define an action group in CDK that processes with Lambda, and also create the Python code for the Lambda function.
+  - title: Knowledge Base Integration Method
+    content: I want to integrate a knowledge base with Bedrock Agent. Please show me how to implement a method in CDK to use documents stored in an S3 bucket as a knowledge base.
+  - title: Managing Multiple Agents and Aliases
+    content: I want to manage different Bedrock agents for development and production environments. Please show me how to create agent aliases in CDK and reference appropriate versions for each environment.
+  - title: Optimizing IAM Roles and Security Settings
+    content: I want to enhance Bedrock Agent security. Please show me how to implement IAM role settings following the principle of least privilege and security best practices for agents in CDK.
+  - title: Designing Agent Prompt Templates
+    content: I want to effectively design prompt templates for Bedrock Agent. Please advise on how to set up prompt templates in CDK to improve agent response quality.
+  - title: Building Deployment Pipeline
+    content: I want to automatically deploy Bedrock Agent through a CI/CD pipeline. Please show me how to automate agent testing and deployment using CodePipeline with CDK.
+  - title: Agent Monitoring and Log Analysis
+    content: I want to monitor Bedrock Agent performance and usage. Please show me how to implement CloudWatch integration and log settings in CDK to analyze agent response quality.
 tags:
   - bedrock
   - agent
@@ -1084,13 +1084,13 @@ mcpServers: []
 knowledgeBases: []
 allowedCommands:
   - pattern: npm run typecheck
-    description: TypeScript による型チェックを行う
+    description: Perform type checking with TypeScript
   - pattern: cdk init --language typescript
-    description: cdk init
+    description: Initialize CDK project
   - pattern: npm install *
-    description: npm install
+    description: Install npm packages
   - pattern: npm run cdk *
-    description: cdk command
+    description: Run CDK commands
 bedrockAgents: []
 isShared: true
 author: daisuke-awaji

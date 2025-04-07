@@ -1,4 +1,4 @@
-// チューニングが必要そうなのでまだ適用しない
+// It seems tuning is needed, so not applied yet
 export const diagramPrompt = `If you create AWS Diagram in Mermaid.js format:
     - Unless otherwise specified, display it in chat without writing it to a file.
     - Use the correct syntax for each component

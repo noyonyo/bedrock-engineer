@@ -49,12 +49,12 @@ interface TitanModelRequest {
     numberOfImages: number // 1-4
     height: number
     width: number
-    cfgScale?: number // デフォルト8.0
+    cfgScale?: number // Default 8.0
     seed?: number
   }
 }
 
-// レスポンス型の定義
+// Response type definition
 interface CoreModelResponse {
   images: string[]
   seeds?: number[]
@@ -71,7 +71,7 @@ interface TitanModelResponse {
   error?: string
 }
 
-// Titanモデルの許容サイズ定義
+// Titan model size definition
 interface TitanImageSize {
   width: number
   height: number
@@ -79,10 +79,11 @@ interface TitanImageSize {
   pricing: '512x512' | '1024x1024'
 }
 
+// List of allowed Titan model sizes
 export class ImageService {
   private runtimeClient: BedrockRuntimeClient
 
-  // Titanモデルの許容サイズ一覧
+  // Titan model size definition
   private readonly titanAllowedSizes: TitanImageSize[] = [
     { width: 1024, height: 1024, aspectRatio: '1:1', pricing: '1024x1024' },
     { width: 768, height: 768, aspectRatio: '1:1', pricing: '512x512' },
@@ -136,27 +137,26 @@ export class ImageService {
 
   private findClosestTitanSize(aspectRatio?: AspectRatio): TitanImageSize {
     if (!aspectRatio) {
-      // アスペクト比が指定されていない場合は1024x1024を返す
+      // If aspect ratio is not specified, return 1024x1024
       return this.titanAllowedSizes[0]
     }
 
-    // 要求されたアスペクト比を数値に変換（例：'16:9' → 16/9）
+    // Convert requested aspect ratio to number (e.g., '16:9' → 16/9)
     const [w, h] = aspectRatio.split(':').map(Number)
     const targetRatio = w / h
 
-    // 最も近いアスペクト比のサイズを見つける
+    // Find the size with the closest aspect ratio
     return this.titanAllowedSizes.reduce((closest, current) => {
       const [cw, ch] = current.aspectRatio.split(':').map(Number)
       const currentRatio = cw / ch
       const [prevW, prevH] = closest.aspectRatio.split(':').map(Number)
       const prevRatio = prevW / prevH
 
-      // 現在のサイズと目標のアスペクト比との差を計算
+      // Calculate difference between current size and target aspect ratio
       const currentDiff = Math.abs(currentRatio - targetRatio)
       const prevDiff = Math.abs(prevRatio - targetRatio)
 
-      // より近いアスペクト比を持つサイズを選択
-      // 同じ場合は大きい方のサイズを選択
+      // Select the size with the smaller difference or the larger size if differences are equal
       if (currentDiff < prevDiff || (currentDiff === prevDiff && current.pricing === '1024x1024')) {
         return current
       }
@@ -176,7 +176,7 @@ export class ImageService {
       }
     }
 
-    // Stability AI models (core, ultra, sd3)とNova Canvasの場合
+    // Stability AI models (core, ultra, sd3) and Nova Canvas
     if (!aspectRatio) return { width: 1024, height: 1024 }
 
     const [w, h] = aspectRatio.split(':').map(Number)

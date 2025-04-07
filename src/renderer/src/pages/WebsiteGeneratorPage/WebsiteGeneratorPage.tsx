@@ -107,7 +107,7 @@ function WebsiteGeneratorPageContents(props: WebsiteGeneratorPageContentsProps) 
   const { knowledgeBases, enableKnowledgeBase, enableSearch, setEnableSearch } =
     useWebsiteGeneratorSettings()
 
-  // WebsiteGeneratorAgentのシステムプロンプトを利用しつつ、テンプレート固有の設定を反映
+  // Use the system prompt of WebsiteGeneratorAgent as the base prompt
   const systemPrompt = useMemo(() => {
     // ベースプロンプトとしてWebsiteGeneratorAgentのシステムプロンプトを使用
     let basePrompt = WEBSITE_GENERATOR_SYSTEM_PROMPT

@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react'
 
 export function useDebounce(value: any, delay: number) {
-  // debounce の対象 state と setter
+  // State and setter to debounce
   const [debouncedValue, setDebouncedValue] = useState(value)
 
   useEffect(() => {
-    // delay 後 debounce の対象 state をアップデート
+    // Update the state to debounce after delay
     const timer = setTimeout(() => {
       setDebouncedValue(value)
     }, delay)
 
-    // 次の effect が実行される直前に timer キャンセル
+    // Cancel timer just before the next effect runs
     return () => {
       clearTimeout(timer)
     }
 
-    // value、delay がアップデートするたびに effect 実行
+    // Execute effect every time value or delay updates
   }, [value, delay])
 
-  // 最終的にアップデートされた state をリターン
+  // Return the final updated state
   return debouncedValue
 }

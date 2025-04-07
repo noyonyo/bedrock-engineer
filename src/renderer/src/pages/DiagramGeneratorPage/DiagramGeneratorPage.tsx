@@ -23,10 +23,10 @@ export default function DiagramGeneratorPage() {
   const drawioRef = useRef<DrawIoEmbedRef>(null)
   const { currentLLM: llm, sendMsgKey, getAgentTools } = useSetting()
 
-  // 検索機能の状態
+  // State for search functionality
   const [enableSearch, setEnableSearch] = useState(false)
 
-  // 履歴管理用の状態
+  // State for history management
   const [diagramHistory, setDiagramHistory] = useState<{ xml: string; prompt: string }[]>([])
   const [selectedHistoryIndex, setSelectedHistoryIndex] = useState<number | null>(null)
 
@@ -37,7 +37,7 @@ export default function DiagramGeneratorPage() {
     i18n: { language }
   } = useTranslation()
 
-  // カスタムシステムプロンプトを定義 - 言語設定と検索機能の有効化に対応
+  // Define custom system prompt - supports language settings and search functionality
   const getSystemPrompt = () => {
     // デフォルトのプロンプトをベースに言語設定と検索機能の状態に応じて調整
     let basePrompt = DIAGRAM_GENERATOR_SYSTEM_PROMPT

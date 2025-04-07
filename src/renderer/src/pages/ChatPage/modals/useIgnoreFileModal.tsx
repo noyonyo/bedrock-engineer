@@ -23,24 +23,24 @@ interface IgnoreFileModalProps {
   onClose: () => void
 }
 const IgnoreFileModal = React.memo(({ isOpen, onClose }: IgnoreFileModalProps) => {
-  // SettingsContext から ignoreFiles と setIgnoreFiles を取得
+  // Retrieve ignoreFiles and setIgnoreFiles from SettingsContext
   const { ignoreFiles, setIgnoreFiles } = useSettings()
   const [ignoreFilesText, setIgnoreFilesText] = useState<string>(ignoreFiles.join('\n'))
   const { t } = useTranslation()
 
-  // 表示が開かれた時に最新の設定を取得
+  // Get the latest settings when the display is opened
   React.useEffect(() => {
     if (isOpen) {
       setIgnoreFilesText(ignoreFiles.join('\n'))
     }
   }, [isOpen, ignoreFiles])
 
-  // テキスト入力を処理
+  // Handle text input
   const handleIgnoreFilesChange = (str: string) => {
     setIgnoreFilesText(str)
   }
 
-  // モーダルが閉じられる時に設定を保存
+  // Save settings when the modal is closed
   const handleSave = () => {
     const arr = ignoreFilesText.split('\n').filter((item) => item.trim() !== '')
     setIgnoreFiles(arr)

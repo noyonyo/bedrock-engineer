@@ -12,7 +12,7 @@ import {
   ProcessInfo
 } from '../../main/api/command/types'
 
-// 修正されたCommandConfig型
+// Modified CommandConfig type
 interface CommandConfig {
   allowedCommands?: CommandPatternConfig[]
   shell: string
@@ -27,7 +27,7 @@ import { FileUseCase, InvokeAgentCommandOutput } from '@aws-sdk/client-bedrock-a
 import { InvokeAgentInput } from '../../main/api/bedrock/services/agentService'
 import { createPreloadCategoryLogger } from '../logger'
 
-const MAX_CHUNK_SIZE = 50000 // 約50,000文字（Claude 3 Haikuの制限を考慮）TODO: 各LLMに対応させる
+const MAX_CHUNK_SIZE = 50000 // About 50,000 characters (considering Claude 3 Haiku limit) TODO: Adapt for each LLM
 
 interface GenerateImageResult extends ToolResult {
   name: 'generateImage'
@@ -101,7 +101,7 @@ interface ExecuteCommandResult extends ToolResult {
   prompt?: string
 }
 
-// コマンドサービスのインスタンスとその設定を保持
+// Store command service instance and its configuration
 interface CommandServiceState {
   service: CommandService
   config: CommandConfig
@@ -114,7 +114,7 @@ const logger = createPreloadCategoryLogger('tools')
 
 export class ToolService {
   private getCommandService(config: CommandConfig): CommandService {
-    // 設定が変更された場合は新しいインスタンスを作成
+    // Create new instance if configuration changes
     if (
       !commandServiceState ||
       JSON.stringify(commandServiceState.config) !== JSON.stringify(config)
@@ -160,10 +160,10 @@ export class ToolService {
   ): Promise<ToolResult> {
     logger.debug(`Applying diff edit to file: ${path}`)
     try {
-      // ファイルの内容を読み込む
+      // Read file contents
       const fileContent = await fs.readFile(path, 'utf-8')
 
-      // 元のテキストが存在するか確認
+      // Check if original text exists
       if (!fileContent.includes(originalText)) {
         logger.warn(`Original text not found in file: ${path}`)
         return {
@@ -174,10 +174,10 @@ export class ToolService {
         }
       }
 
-      // テキストを置換
+      // Replace text
       const newContent = fileContent.replace(originalText, updatedText)
 
-      // ファイルに書き込む
+      // Write to file
       await fs.writeFile(path, newContent, 'utf-8')
 
       logger.info(`Successfully applied diff edit to file: ${path}`, {
@@ -518,7 +518,7 @@ export class ToolService {
     try {
       const { chunkIndex, chunkSize = MAX_CHUNK_SIZE } = options || {}
 
-      // 単一ファイルの場合は従来の処理
+      // Single file case
       if (filePaths.length === 1) {
         const filePath = filePaths[0]
         logger.debug(`Reading single file: ${filePath}`)
@@ -571,11 +571,11 @@ export class ToolService {
         ].join('\n')
       }
 
-      // 複数ファイルの場合
+      // Multiple files case
       logger.debug(`Reading multiple files: ${filePaths.length} files`)
       const fileContents: string[] = []
 
-      // 各ファイルを順番に処理
+      // Process each file sequentially
       for (const filePath of filePaths) {
         try {
           logger.verbose(`Reading file: ${filePath}`)
@@ -589,11 +589,11 @@ export class ToolService {
         }
       }
 
-      // 複数ファイルの内容を結合
+      // Combine contents of multiple files
       const combinedContent = fileContents.join('\n\n')
       logger.debug(`Combined ${filePaths.length} files`, { totalLength: combinedContent.length })
 
-      // チャンク分割が必要な場合
+      // Chunk splitting is necessary
       const chunks = this.createFileChunks(combinedContent, 'Multiple Files', chunkSize)
       logger.debug(`Multiple files content split into ${chunks.length} chunks`)
 
@@ -1039,7 +1039,7 @@ export class ToolService {
     })
 
     try {
-      // ファイル処理の修正
+      // File processing correction
       let fileData: any = undefined
       if (file && file.filePath) {
         logger.debug('Processing file for agent invocation', {
@@ -1064,7 +1064,7 @@ export class ToolService {
               source: {
                 sourceType: 'BYTE_CONTENT',
                 byteContent: {
-                  // CSVファイルの場合は text/csv を使用
+                  // CSV file case
                   mediaType: filename.endsWith('.csv') ? 'text/csv' : mimeType,
                   data: fileContent
                 }
@@ -1160,8 +1160,8 @@ export class ToolService {
   }
 
   /**
-   * Think ツールの実装
-   * 問題を詳細に考察し、段階的な思考プロセスを返す
+   * Think tool implementation
+   * Think about a problem in detail, return a step-by-step thinking process
    */
   async think(thought: string): Promise<ThinkResult> {
     logger.debug('Using think tool', { queryLength: thought.length })
@@ -1171,9 +1171,9 @@ export class ToolService {
         query: thought.substring(0, 100) + (thought.length > 100 ? '...' : '')
       })
 
-      // このツールは実際には特別な処理を行わず、Claude 3.7 Sonnetの拡張思考モードが
-      // そのままクライアントに対して思考プロセスを表示するようにします
-      // もしクエリが非常に複雑な場合は、より詳細な思考プロセスが必要であることを明示する
+      // This tool does not perform special processing, but allows Claude 3.7 Sonnet's extended thinking mode
+      // to directly display the thinking process to the client
+      // If the query is very complex, it explicitly indicates that a more detailed thinking process is needed
 
       return {
         success: true,
@@ -1211,7 +1211,7 @@ export class ToolService {
       let result
 
       if ('stdin' in input && 'pid' in input) {
-        // 標準入力を送信
+        // Send standard input
         logger.info('Sending stdin to process', {
           pid: input.pid,
           stdinLength: input.stdin?.length || 0
@@ -1226,7 +1226,7 @@ export class ToolService {
           hasStderr: !!result.stderr.length
         })
       } else if ('command' in input && 'cwd' in input) {
-        // 新しいコマンドを実行
+        // Execute new command
         logger.info('Executing new command', {
           command: input.command,
           cwd: input.cwd

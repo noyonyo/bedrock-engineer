@@ -2,7 +2,7 @@ export class NotificationService {
   private static instance: NotificationService
 
   private constructor() {
-    // シングルトンパターンのためprivateコンストラクタ
+    // Private constructor for singleton pattern
   }
 
   public static getInstance(): NotificationService {
@@ -28,7 +28,7 @@ export class NotificationService {
   }
 
   public async showNotification(title: string, options?: NotificationOptions): Promise<void> {
-    // ウィンドウがフォーカスされている場合は通知を表示しない
+    // Do not show notification if window is focused
     try {
       const isFocused = await window.appWindow?.isFocused?.()
       if (isFocused) {
@@ -36,7 +36,7 @@ export class NotificationService {
       }
     } catch (error) {
       console.warn('Failed to check window focus state:', error)
-      // エラーが発生した場合は通知を表示する方向で処理を継続
+      // Continue processing with notification display if error occurs
     }
 
     if (!this.isSupported()) {
@@ -54,9 +54,9 @@ export class NotificationService {
 
     try {
       const defaultOptions: NotificationOptions = {
-        body: 'AIからの返信が届きました',
-        icon: '/icon.png', // アプリケーションのアイコンを使用
-        silent: false, // 通知音を有効化
+        body: 'Response from AI received',
+        icon: '/icon.png', // Use application icon
+        silent: false, // Enable notification sound
         ...options
       }
 

@@ -2,7 +2,7 @@ import { Tool } from '@aws-sdk/client-bedrock-runtime'
 import { BedrockAgent } from './agent'
 import { ToolName } from './tools'
 
-// コマンド設定の型定義
+// Command configuration type definition
 export interface CommandConfig {
   pattern: string
   description: string
@@ -209,14 +209,14 @@ export type AgentCategory =
 export type CustomAgent = Agent & {
   isCustom?: boolean
   isShared?: boolean
-  directoryOnly?: boolean // ディレクトリからのみ取得されたエージェント（テンプレート）
-  tools?: ToolName[] // エージェント固有のツール名リスト
-  category?: AgentCategory // エージェントのカテゴリ
-  allowedCommands?: CommandConfig[] // エージェント固有の許可コマンド
-  bedrockAgents?: BedrockAgent[] // エージェント固有のBedrock Agents
-  knowledgeBases?: KnowledgeBase[] // エージェント固有のKnowledge Base
-  mcpServers?: McpServerConfig[] // エージェント固有のMCPサーバー設定
-  mcpTools?: ToolState[] // エージェント固有のMCPツール設定
+  directoryOnly?: boolean // Agent retrieved only from directory (template)
+  tools?: ToolName[] // List of agent-specific tool names
+  category?: AgentCategory // Agent category
+  allowedCommands?: CommandConfig[] // Agent-specific allowed commands
+  bedrockAgents?: BedrockAgent[] // Agent-specific Bedrock Agents
+  knowledgeBases?: KnowledgeBase[] // Agent-specific Knowledge Base
+  mcpServers?: McpServerConfig[] // Agent-specific MCP Server Configuration
+  mcpTools?: ToolState[] // Agent-specific MCP Tool Configuration
 }
 
 export type AgentSettings = {
@@ -228,7 +228,7 @@ export type KnowledgeBase = {
   description: string
 }
 
-// MCPサーバー設定の型定義
+// MCP Server Configuration type definition
 export interface McpServerConfig {
   name: string
   description: string

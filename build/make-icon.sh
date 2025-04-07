@@ -1,32 +1,34 @@
 #!/bin/bash
 
+# Create app icons for Electron
+
 #
 # Electron用にアプリアイコンを一括作成
 # https://blog.katsubemakito.net/nodejs/electron/app-icon
 #
-# 実行方法
+# How to execute
 #   $ ./makeIcon.sh icon.png
 #
 
 #--------------------------------#
-# 定数
+# Constants
 #--------------------------------#
-#-- 元画像 (512x512px) --#
+#-- Source image (512x512px) --#
 readonly ORG_FILE=$1;
 
-#-- Windows用アイコンの生成先 --#
+#-- Destination for Windows icons --#
 readonly ICON_DIR_WIN='./'
 
-#-- macOS用アイコン --#
+#-- macOS icons --#
 readonly ICONSET_DIR='icon.iconset'
 readonly ICON_DIR_MAC='./'
 
 #--------------------------------#
-# macOS用
+# For macOS
 #--------------------------------#
 mkdir -p $ICONSET_DIR
 
-#-- 元画像をリサイズしてコピー --#
+#-- Resize and copy the source image --#
 convert -resize 16x16!    $ORG_FILE  $ICONSET_DIR/icon_16x16.png
 convert -resize 32x32!    $ORG_FILE  $ICONSET_DIR/icon_16x16@2x.png
 convert -resize 32x32!    $ORG_FILE  $ICONSET_DIR/icon_32x32.png
@@ -37,10 +39,10 @@ convert -resize 256x256!  $ORG_FILE  $ICONSET_DIR/icon_256x256.png
 convert -resize 512x512!  $ORG_FILE  $ICONSET_DIR/icon_256x256@2x.png
 convert -resize 512x512!  $ORG_FILE  $ICONSET_DIR/icon_512x512.png
 
-#-- icns形式のファイルに変換 --$
+#-- Convert to icns format file --#
 iconutil -c icns $ICONSET_DIR -o $ICON_DIR_MAC/icon.icns
 
 #---------------------------------------
-# Windows用
+# For Windows
 #---------------------------------------
 convert $ORG_FILE -define icon:auto-resize $ICON_DIR_WIN/icon.ico

@@ -12,8 +12,8 @@ import type { ServiceContext } from '../types'
 const guardrailLogger = createCategoryLogger('bedrock:guardrail')
 
 /**
- * Bedrock Guardrail APIと連携するサービスクラス
- * ガードレールのテキストコンテンツ評価を担当
+ * Service class that integrates with Bedrock Guardrail API
+ * Responsible for evaluating text content against guardrails
  */
 export class GuardrailService {
   private static readonly MAX_RETRIES = 3
@@ -22,17 +22,17 @@ export class GuardrailService {
   constructor(private context: ServiceContext) {}
 
   /**
-   * ガードレール評価を適用する
-   * @param request ガードレール評価リクエスト
-   * @returns ガードレール評価結果
+   * Apply guardrail evaluation
+   * @param request Guardrail evaluation request
+   * @returns Guardrail evaluation result
    */
   async applyGuardrail(
     request: ApplyGuardrailRequest,
     retries = 0
   ): Promise<ApplyGuardrailCommandOutput> {
     try {
-      // リクエストパラメータの準備
-      // AWS SDK の ApplyGuardrailCommandInput の実際の型に合わせた準備
+      // Prepare request parameters
+      // Prepare according to AWS SDK ApplyGuardrailCommandInput actual type
       const commandParams: ApplyGuardrailCommandInput = {
         guardrailIdentifier: request.guardrailIdentifier,
         guardrailVersion: request.guardrailVersion,
@@ -43,14 +43,14 @@ export class GuardrailService {
       const runtimeClient = createRuntimeClient(this.context.store.get('aws'))
       const awsConfig = this.context.store.get('aws')
 
-      // APIリクエスト前にログ出力
+      // Log output before API request
       guardrailLogger.debug('Sending apply guardrail request', {
         guardrailId: request.guardrailIdentifier,
         guardrailVersion: request.guardrailVersion,
         region: awsConfig.region
       })
 
-      // APIリクエストを送信
+      // Send API request
       const command = new ApplyGuardrailCommand(commandParams)
       return await runtimeClient.send(command)
     } catch (error: any) {
@@ -59,14 +59,14 @@ export class GuardrailService {
   }
 
   /**
-   * エラー処理を行う
+   * Handle errors
    */
   private async handleError(
     error: any,
     request: ApplyGuardrailRequest,
     retries: number
   ): Promise<ApplyGuardrailCommandOutput> {
-    // スロットリングまたはサービス利用不可の場合
+    // In case of throttling or service unavailable
     if (error.name === 'ThrottlingException' || error.name === 'ServiceUnavailableException') {
       guardrailLogger.warn(`${error.name} occurred - retrying`, {
         retry: retries,
@@ -75,7 +75,7 @@ export class GuardrailService {
         guardrailId: request.guardrailIdentifier
       })
 
-      // 最大リトライ回数を超えた場合はエラーをスロー
+      // Throw error if max retry count exceeded
       if (retries >= GuardrailService.MAX_RETRIES) {
         guardrailLogger.error('Maximum retries reached for Bedrock API request', {
           maxRetries: GuardrailService.MAX_RETRIES,
@@ -85,12 +85,12 @@ export class GuardrailService {
         throw error
       }
 
-      // 待機してから再試行
+      // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, GuardrailService.RETRY_DELAY))
       return this.applyGuardrail(request, retries + 1)
     }
 
-    // バリデーションエラーの場合
+    // In case of validation error
     if (error.name === 'ValidationException') {
       guardrailLogger.error('ValidationException in applyGuardrail', {
         errorMessage: error.message,
@@ -98,7 +98,7 @@ export class GuardrailService {
         guardrailId: request.guardrailIdentifier
       })
     } else {
-      // その他のエラー
+      // In case of other errors
       guardrailLogger.error('Error in applyGuardrail', {
         errorName: error.name,
         errorMessage: error.message,

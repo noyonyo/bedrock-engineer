@@ -2,8 +2,8 @@ import { store } from '../store'
 import { CustomAgent } from '../../types/agent-chat'
 
 /**
- * カスタムエージェントと共有エージェントを組み合わせて返す関数
- * 注: directoryAgentsは含まれません
+ * Function to combine and return custom agents and shared agents
+ * Note: directoryAgents are not included
  */
 export function getAllAgents(): CustomAgent[] {
   const customAgents = store.get('customAgents') || []
@@ -12,8 +12,8 @@ export function getAllAgents(): CustomAgent[] {
 }
 
 /**
- * IDを指定してエージェントを検索する関数
- * カスタムエージェントと共有エージェントから検索します
+ * Function to search for an agent by ID
+ * Searches through custom agents and shared agents
  */
 export function findAgentById(agentId: string): CustomAgent | undefined {
   return getAllAgents().find((agent) => agent.id === agentId)

@@ -48,7 +48,7 @@ export async function* streamChatCompletion(
         let token = decoder.decode(value, { stream: true })
 
         const boundary = token.lastIndexOf(`\n`)
-        // 2つ以上の JSON オブジェクトが連なっている場合
+        // Handle multiple JSON objects
         if (boundary !== -1) {
           const completeData = token.substring(0, boundary)
           token = token.substring(boundary + 1)

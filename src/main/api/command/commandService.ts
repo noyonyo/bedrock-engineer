@@ -16,17 +16,17 @@ export class CommandService {
   private runningProcesses: Map<number, DetachedProcessInfo> = new Map()
   private processStates: Map<number, ProcessState> = new Map()
 
-  // 入力待ち状態を検出するパターン
+  // Patterns to detect input waiting state
   private inputDetectionPatterns: InputDetectionPattern[] = [
     {
-      pattern: /\? .+\?.*$/m, // inquirer形式の質問
+      pattern: /\? .+\?.*$/m, // inquirer style question
       promptExtractor: (output) => {
         const match = output.match(/\? (.+\?.*$)/m)
         return match ? match[1] : output
       }
     },
     {
-      pattern: /[^:]+: $/m, // 基本的なプロンプト（例: "Enter name: "）
+      pattern: /[^:]+: $/m, // Basic prompt (e.g., "Enter name: ")
       promptExtractor: (output) => {
         const lines = output.split('\n')
         return lines[lines.length - 1]
@@ -34,7 +34,7 @@ export class CommandService {
     }
   ]
 
-  // サーバー起動状態を示すパターン
+  // Patterns indicating server startup state
   private serverReadyPatterns = [
     'listening',
     'ready',
@@ -47,7 +47,7 @@ export class CommandService {
     'development server running'
   ]
 
-  // エラーを示すパターン
+  // Patterns indicating errors
   private errorPatterns = [
     'EADDRINUSE',
     'Error:',
@@ -79,7 +79,7 @@ export class CommandService {
   private isCommandAllowed(commandToExecute: string): boolean {
     const executeParts = this.parseCommandPattern(commandToExecute)
 
-    // allowedCommands が未定義の場合は空の配列として処理
+    // Treat as empty array if allowedCommands is undefined
     const allowedCommands = this.config.allowedCommands || []
 
     return allowedCommands.some((allowedCmd) => {
@@ -106,7 +106,7 @@ export class CommandService {
     })
   }
 
-  // 入力待ち状態かどうかを判定
+  // Check if waiting for input
   private isWaitingForInput(output: string): { isWaiting: boolean; prompt?: string } {
     for (const pattern of this.inputDetectionPatterns) {
       if (output.match(pattern.pattern)) {
@@ -136,23 +136,23 @@ export class CommandService {
     }
   }
 
-  // サーバーが正常に起動しているかチェック
+  // Check if server has started successfully
   private isServerReady(output: string): boolean {
     return this.serverReadyPatterns.some((pattern) =>
       output.toLowerCase().includes(pattern.toLowerCase())
     )
   }
 
-  // エラーチェック
+  // Error checking
   private checkForErrors(stdout: string, stderr: string): boolean {
-    // エラーパターンのチェック
+    // Check for error patterns
     if (
       this.errorPatterns.some((pattern) => stdout.includes(pattern) || stderr.includes(pattern))
     ) {
       return true
     }
 
-    // クラッシュ状態のチェック
+    // Check for crash state
     if (stdout.includes('app crashed') && !stdout.includes('waiting for file changes')) {
       return true
     }
@@ -167,7 +167,7 @@ export class CommandService {
         return
       }
 
-      // 設定されたシェルを使用
+      // Use configured shell
       const process = spawn(this.config.shell, ['-ic', input.command], {
         cwd: input.cwd,
         detached: true,
@@ -182,7 +182,7 @@ export class CommandService {
 
       const pid = process.pid
 
-      // プロセス情報を初期化
+      // Initialize process information
       this.initializeProcessState(pid)
       this.runningProcesses.set(pid, {
         pid,
@@ -190,7 +190,7 @@ export class CommandService {
         timestamp: Date.now()
       })
 
-      // プロセスの状態を保存
+      // Save process state
       this.updateProcessState(pid, { process })
 
       let currentOutput = ''
@@ -218,7 +218,7 @@ export class CommandService {
             return
           }
 
-          // 入力待ち状態のチェック
+          // Check waiting state or development server state
           const { isWaiting, prompt } = this.isWaitingForInput(currentOutput)
           if (isWaiting) {
             resolve({
@@ -236,7 +236,7 @@ export class CommandService {
             return
           }
 
-          // 開発サーバーの状態チェック
+          // Check development server state
           if (this.isServerReady(currentOutput)) {
             resolve({
               stdout: currentOutput,
@@ -251,7 +251,7 @@ export class CommandService {
             return
           }
 
-          // 通常のコマンド完了
+          // Normal command completion
           isCompleted = true
           cleanup()
           resolve({
@@ -277,14 +277,14 @@ export class CommandService {
             output: { ...state.output, stdout: currentOutput }
           })
 
-          // エラーチェック
+          // Error checking
           if (this.checkForErrors(chunk, '')) {
             this.updateProcessState(pid, { hasError: true })
             completeWithError(`Command failed: \n${currentOutput}\n${currentError}`)
             return
           }
 
-          // 入力待ち状態または開発サーバーの状態をチェック
+          // Check waiting state or development server state
           const { isWaiting } = this.isWaitingForInput(currentOutput)
           if (isWaiting || this.isServerReady(currentOutput)) {
             completeWithSuccess()
@@ -302,7 +302,7 @@ export class CommandService {
             output: { ...state.output, stderr: currentError }
           })
 
-          // エラーチェック
+          // Error checking
           if (this.checkForErrors('', chunk)) {
             this.updateProcessState(pid, { hasError: true })
             completeWithError(`Command failed: \n${currentOutput}\n${currentError}`)
@@ -332,8 +332,8 @@ export class CommandService {
         }
       })
 
-      const TIMEOUT = 60000 * 5 // 5分
-      // タイムアウト処理
+      const TIMEOUT = 60000 * 5 // 5 minutes
+      // Timeout processing
       setTimeout(() => {
         if (!isCompleted) {
           const state = this.processStates.get(pid)
@@ -342,7 +342,7 @@ export class CommandService {
           if (state.hasError) {
             completeWithError(`Command failed to start: \n${currentError}`)
           } else {
-            // 開発サーバーの状態チェック
+            // Check development server state
             if (
               this.isServerReady(currentOutput) ||
               currentOutput.includes('waiting for file changes')
@@ -353,7 +353,7 @@ export class CommandService {
             }
           }
         }
-      }, TIMEOUT) // Multi-Agent 的な処理を見据えて長めに設定する
+      }, TIMEOUT) // Set longer for Multi-Agent processing
     })
   }
 
@@ -369,7 +369,7 @@ export class CommandService {
       let currentError = state.output.stderr
       let isCompleted = false
 
-      // 既存のリスナーを削除
+      // Remove existing listeners
       process.stdout.removeAllListeners('data')
       process.stderr.removeAllListeners('data')
       process.removeAllListeners('error')
@@ -386,7 +386,7 @@ export class CommandService {
         if (!isCompleted) {
           isCompleted = true
 
-          // 入力待ち状態のチェック
+          // Check waiting state
           const { isWaiting, prompt } = this.isWaitingForInput(currentOutput)
 
           resolve({
@@ -412,14 +412,14 @@ export class CommandService {
           output: { ...state.output, stdout: currentOutput }
         })
 
-        // エラーチェック
+        // Error checking
         if (this.checkForErrors(chunk, '')) {
           this.updateProcessState(input.pid, { hasError: true })
           completeWithError(`Command failed: \n${currentOutput}\n${currentError}`)
           return
         }
 
-        // 入力待ち状態または開発サーバーの状態をチェック
+        // Check waiting state or development server state
         const { isWaiting } = this.isWaitingForInput(currentOutput)
         if (isWaiting || this.isServerReady(currentOutput)) {
           completeWithSuccess()
@@ -458,15 +458,15 @@ export class CommandService {
           completeWithError(`Process exited with code ${code}\n${currentOutput}\n${currentError}`)
         }
 
-        // プロセスが終了したらクリーンアップ
+        // Clean up after process ends
         this.runningProcesses.delete(input.pid)
         this.processStates.delete(input.pid)
       })
 
-      // 標準入力を送信
+      // Send standard input
       process.stdin.write(input.stdin + '\n')
 
-      // タイムアウト処理
+      // Timeout processing
       setTimeout(() => {
         if (!isCompleted) {
           const currentState = this.processStates.get(input.pid)
@@ -491,7 +491,7 @@ export class CommandService {
     const processInfo = this.runningProcesses.get(pid)
     if (processInfo) {
       try {
-        process.kill(-pid) // プロセスグループ全体を終了
+        process.kill(-pid) // Kill entire process group
         this.runningProcesses.delete(pid)
         this.processStates.delete(pid)
       } catch (error) {

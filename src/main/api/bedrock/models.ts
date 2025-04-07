@@ -14,10 +14,10 @@ export const baseModels: LLM[] = [
       'eu-central-1',
       'eu-west-1',
       'eu-west-3',
-      // 'ap-northeast-1',  // クロスリージョン推論のみ対応
-      // 'ap-northeast-2', // クロスリージョン推論のみ対応
+      // 'ap-northeast-1',  // Cross-region inference only
+      // 'ap-northeast-2', // Cross-region inference only
       'ap-south-1',
-      // 'ap-southeast-1', // クロスリージョン推論のみ対応
+      // 'ap-southeast-1', // Cross-region inference only
       'ap-southeast-2'
     ]
   },
@@ -34,7 +34,7 @@ export const baseModels: LLM[] = [
       'eu-west-1',
       'eu-west-3',
       'ap-northeast-1',
-      // 'ap-northeast-2', // クロスリージョン推論のみ対応
+      // 'ap-northeast-2', // Cross-region inference only
       'ap-south-1',
       'ap-southeast-1',
       'ap-southeast-2'
@@ -64,7 +64,7 @@ export const baseModels: LLM[] = [
       'eu-west-1',
       // 'eu-west-3',
       'ap-northeast-1',
-      // 'ap-northeast-2', // クロスリージョン推論のみ対応
+      // 'ap-northeast-2', // Cross-region inference only
       'ap-south-1'
       // 'ap-southeast-1',
       // 'ap-southeast-2'

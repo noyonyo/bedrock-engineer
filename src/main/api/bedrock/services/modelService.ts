@@ -13,7 +13,7 @@ export class ModelService {
     const awsCredentials = this.context.store.get('aws') as AWSCredentials
     const { region, accessKeyId, useProfile } = awsCredentials
 
-    // AWS認証情報のバリデーション
+    // AWS credentials validation
     if (!region || (!useProfile && !accessKeyId)) {
       console.warn('AWS credentials not configured properly')
       return []

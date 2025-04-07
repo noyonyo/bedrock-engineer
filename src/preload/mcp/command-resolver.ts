@@ -4,31 +4,31 @@ import os from 'os'
 import { execSync } from 'child_process'
 
 /**
- * コマンド実行可能ファイルのパスを解決する
- * TODO: Windowsへの対応と動作確認が必要
- * TODO: PATH の設定をユーザー側で制御可能にする
- * @param command コマンド名（uvx など）
- * @returns 解決されたコマンドパス
+ * Resolve the path of an executable command
+ * TODO: Windows support and testing needed
+ * TODO: Make PATH configuration controllable by the user
+ * @param command Command name (e.g., uvx)
+ * @returns Resolved command path
  */
 export function resolveCommand(command: string): string {
   try {
-    // 1. 絶対パスの場合はそのまま使用
+    // 1. Use as is if it's an absolute path
     if (path.isAbsolute(command)) {
       if (fs.existsSync(command)) {
         return command
       }
     }
 
-    // 2. 一般的なインストール先を確認
+    // 2. Check common installation locations
     const commonPaths = [
-      // グローバルnpmパッケージのパス
+      // Global npm package path
       '/usr/local/bin',
       '/opt/homebrew/bin',
-      // Apple Silicon Mac用のHomebrew
+      // Homebrew for Apple Silicon Mac
       '/opt/homebrew/bin',
-      // Intel Mac用のHomebrew
+      // Homebrew for Intel Mac
       '/usr/local/bin',
-      // ユーザーのホームディレクトリ内のbin
+      // User's home directory bin
       path.join(os.homedir(), '.npm-global/bin'),
       path.join(os.homedir(), 'bin'),
       path.join(os.homedir(), '.local/bin')
@@ -41,11 +41,11 @@ export function resolveCommand(command: string): string {
           return fullPath
         }
       } catch (err) {
-        // エラーを無視して次のパスを試行
+        // Ignore error and try next path
       }
     }
 
-    // 3. macOS/Linux環境ではwhichコマンドで探索
+    // 3. Search using which command on macOS/Linux
     if (process.platform !== 'win32') {
       try {
         const whichPath = execSync(`which ${command}`, { encoding: 'utf8' }).trim()
@@ -53,13 +53,13 @@ export function resolveCommand(command: string): string {
           return whichPath
         }
       } catch (err) {
-        // whichコマンドが失敗した場合は無視
+        // Ignore if which command fails
       }
     }
   } catch (error) {
     console.error(`Error resolving command path for ${command}:`, error)
   }
 
-  // 最終的には元のコマンド名を返す
+  // Finally return the original command name
   return command
 }

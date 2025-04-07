@@ -8,7 +8,7 @@ module.exports = {
   ],
   settings: {
     react: {
-      version: 'detect' // React のバージョンを自動検出
+      version: 'detect' // Automatically detect React version
     }
   },
   rules: {

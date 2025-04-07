@@ -13,7 +13,7 @@ import {
 import { createAgentRuntimeClient } from '../client'
 import type { ServiceContext } from '../types'
 
-// 必須パラメータと省略可能パラメータを明確に分離
+// Clearly separate required and optional parameters
 type RequiredAgentParams = {
   agentId: string
   agentAliasId: string
@@ -38,7 +38,7 @@ export type InvokeAgentResult = {
   completion?: Completion
 }
 
-// InvokeAgentCommandInput から特定のプロパティを除外し、新しい必須・オプションパラメータを組み合わせる
+// Exclude specific properties from InvokeAgentCommandInput and combine new required and optional parameters
 export type InvokeAgentInput = RequiredAgentParams &
   OptionalAgentParams &
   Omit<
@@ -65,15 +65,15 @@ export class AgentService {
   }
 
   /**
-   * Agent と対話するためのメソッド
-   * @param params Agent との対話に必要なパラメータ
-   * @returns Agent からのレスポンス
+   * Method to interact with Agent
+   * @param params Parameters required for Agent interaction
+   * @returns Response from Agent
    */
   async invokeAgent(params: InvokeAgentInput): Promise<InvokeAgentResult> {
     console.log(params)
     const { agentId, agentAliasId, sessionId, inputText, enableTrace = false, ...rest } = params
 
-    // セッションIDが指定されていない場合は新規生成
+    // Generate new session ID if not specified
     const generatedSessionId = sessionId || this.generateSessionId()
 
     const command = new InvokeAgentCommand({
@@ -102,7 +102,7 @@ export class AgentService {
     }
   }
 
-  // ストリームからレスポンスを読み取るユーティリティ関数
+  // Utility function to read response from stream
   private async readStreamResponse(stream: AsyncIterable<ResponseStream>) {
     const response: Completion = {
       message: '',
@@ -125,7 +125,7 @@ export class AgentService {
 
         if (streamChunk.files) {
           for (const file of streamChunk.files.files || []) {
-            // 同じファイルが何度か出現することがあるため初出のみ表示
+            // Only show first occurrence as the same file may appear multiple times
             if (existingFiles.has(file.name || '')) {
               continue
             }
@@ -148,8 +148,7 @@ export class AgentService {
   }
 
   /**
-   * セッションIDを生成するためのプライベートメソッド
-   * @returns 生成されたセッションID
+   * Private method to generate session ID
    */
   private generateSessionId(): string {
     return `session_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`

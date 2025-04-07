@@ -16,20 +16,19 @@ export type ToolName =
   | 'executeCommand'
   | 'applyDiffEdit'
   | 'think'
-  | string // MCPツール名を許容するために文字列型も追加
+  | string // Added string type to support MCP tool names
 
 /**
- * MCPツール関連のユーティリティ関数
- *
- * 注意: AWS APIの制約により、ツール名には [a-zA-Z0-9_-]+ の文字のみ許可されています。
- * そのため、MCPツールには "mcp:" ではなく "mcp_" プレフィックスを使用します。
+ * MCP tool utility functions
+ * Note: Due to AWS API constraints, tool names can only contain [a-zA-Z0-9_-]+ characters.
+ * Therefore, MCP tools use "mcp_" prefix instead of "mcp:".
  */
-// MCPツール名であるかを判定する関数
+// Function to determine if a name is an MCP tool name
 export const isMcpTool = (name: string): boolean => {
   return name.startsWith('mcp_')
 }
 
-// MCPツール名を標準化する関数（通常のツール名をMCP識別子付きにする）
+// Function to standardize MCP tool names (add MCP identifier to normal tool names)
 export const normalizeMcpToolName = (name: string): string => {
   if (isMcpTool(name)) {
     return name
@@ -37,10 +36,10 @@ export const normalizeMcpToolName = (name: string): string => {
   return `mcp_${name}`
 }
 
-// MCP識別子を除いた素のツール名を取得する関数
+// Function to get the raw tool name without MCP identifier
 export const getOriginalMcpToolName = (name: string): string => {
   if (isMcpTool(name)) {
-    return name.substring(4) // 'mcp_'の長さ(4)以降の文字列を返す
+    return name.substring(4) // Return string after 'mcp_' (length 4)
   }
   return name
 }
@@ -53,7 +52,7 @@ export interface ToolResult<T = any> {
   result: T
 }
 
-// ツールごとの入力型定義
+// Tool-specific input type definitions
 export type CreateFolderInput = {
   type: 'createFolder'
   path: string
@@ -61,7 +60,7 @@ export type CreateFolderInput = {
 
 export type ReadFilesInput = {
   type: 'readFiles'
-  paths: string[] // 複数のファイルパスを受け取るように変更
+  paths: string[] // Modified to accept multiple file paths
   options?: {
     chunkIndex?: number
     chunkSize?: number
@@ -162,7 +161,7 @@ export type ExecuteCommandInput = {
     }
 )
 
-// 新しい applyDiffEdit ツールの入力型
+// New applyDiffEdit tool input type
 export type ApplyDiffEditInput = {
   type: 'applyDiffEdit'
   path: string
@@ -170,19 +169,19 @@ export type ApplyDiffEditInput = {
   updatedText: string
 }
 
-// think ツールの入力型
+// think tool input type
 export type ThinkInput = {
   type: 'think'
   thought: string
 }
 
-// MCPツールの入力型
+// MCP tool input type
 export type McpToolInput = {
-  type: string // MCPツール名
-  [key: string]: any // MCPツールの任意のパラメータ
+  type: string // MCP tool name
+  [key: string]: any // MCP tool's arbitrary parameters
 }
 
-// ディスクリミネーテッドユニオン型
+// Discriminated union type for tool inputs
 export type ToolInput =
   | CreateFolderInput
   | ReadFilesInput
@@ -198,9 +197,9 @@ export type ToolInput =
   | ExecuteCommandInput
   | ApplyDiffEditInput
   | ThinkInput
-  | McpToolInput // MCPツール入力を追加
+  | McpToolInput // Add MCP tool input
 
-// ツール名から入力型を取得するユーティリティ型
+// Utility type to get input type from tool name
 export type ToolInputTypeMap = {
   createFolder: CreateFolderInput
   readFiles: ReadFilesInput
@@ -216,11 +215,11 @@ export type ToolInputTypeMap = {
   executeCommand: ExecuteCommandInput
   applyDiffEdit: ApplyDiffEditInput
   think: ThinkInput
-  [key: string]: any // MCPツールに対応するためのインデックスシグネチャ
+  [key: string]: any // Index signature for MCP tools
 }
 
 /**
- * ツール定義（JSON Schema）
+ * Tool definition (JSON Schema)
  *
  * Amazon Nova understanding models currently support only a subset of JsonSchema functionality when used to define the ToolInputSchema in Converse API.
  * The top level schema must be of type Object.

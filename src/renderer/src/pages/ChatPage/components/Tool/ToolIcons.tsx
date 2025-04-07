@@ -17,7 +17,7 @@ import {
 import { BiFace } from 'react-icons/bi'
 import { MdDifference } from 'react-icons/md'
 
-// 標準ツールのアイコン定義
+// Icon definitions for standard tools
 const standardToolIcons = {
   createFolder: <FaFolderPlus className="text-blue-500 size-6" />,
   writeToFile: <FaFileSignature className="text-green-500 size-6" />,
@@ -35,7 +35,7 @@ const standardToolIcons = {
   think: <FaBrain className="text-amber-500 size-6" />
 }
 
-// MCPツール用のアイコン（すべてのMCPツールで共通）
+// Icons for MCP tools (common to all MCP tools)
 const mcpIcon = <FaServer className="text-cyan-500 size-6" />
 
 // ツール名に応じて動的にアイコンを返すプロキシ

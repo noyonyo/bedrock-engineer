@@ -10,7 +10,7 @@ export interface ContentChunk {
 }
 
 export class ContentChunker {
-  private static readonly MAX_CHUNK_SIZE = 50000 // 約50,000文字（Claude 3 Haikuの制限を考慮）
+  private static readonly MAX_CHUNK_SIZE = 50000 // Approximately 50,000 characters (considering Claude 3 Haiku's limitations)
 
   static splitContent(
     content: string,
@@ -20,12 +20,12 @@ export class ContentChunker {
     const chunks: ContentChunk[] = []
     const timestamp = Date.now()
 
-    // option のデフォルトは false
+    // Default value for option is false
     if (option?.cleaning) {
       content = this.extractMainContent(content)
     }
 
-    // コンテンツを適切なサイズに分割
+    // Split content into appropriate sizes
     const totalChunks = Math.ceil(content.length / this.MAX_CHUNK_SIZE)
 
     for (let i = 0; i < totalChunks; i++) {
@@ -47,13 +47,13 @@ export class ContentChunker {
   }
 
   public static extractMainContent(html: string): string {
-    // 基本的なHTMLクリーニング
+    // Basic HTML cleaning
     const content = html
-      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // スクリプトの削除
-      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '') // スタイルの削除
-      .replace(/<[^>]+>/g, '\n') // タグを改行に変換
-      .replace(/&nbsp;/g, ' ') // HTMLエンティティの変換
-      .replace(/\s+/g, ' ') // 連続する空白の削除
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove scripts
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '') // Remove styles
+      .replace(/<[^>]+>/g, '\n') // Convert tags to newlines
+      .replace(/&nbsp;/g, ' ') // Convert HTML entities
+      .replace(/\s+/g, ' ') // Remove consecutive whitespace
       .trim()
 
     return content

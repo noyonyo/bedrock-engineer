@@ -34,7 +34,7 @@ const DataSourceConnectModal = React.memo(({ isOpen, onClose }: DataSourceConnec
   const handleAddKnowledgeBase = () => {
     if (newKnowledgeBase.knowledgeBaseId && newKnowledgeBase.description) {
       setKnowledgeBases([...knowledgeBases, newKnowledgeBase])
-      setNewKnowledgeBase({ knowledgeBaseId: '', description: '' }) // フォームをリセット
+      setNewKnowledgeBase({ knowledgeBaseId: '', description: '' }) // Reset the form
     }
   }
 

@@ -36,7 +36,7 @@ export const api = {
     getToolSpecs: async (mcpServers?: any) => {
       return getMcpToolSpecs(mcpServers)
     },
-    // 接続テスト関連の関数を追加
+    // Add connection test related functions
     testConnection: async (mcpServer: McpServerConfig) => {
       return testMcpServerConnection(mcpServer)
     },

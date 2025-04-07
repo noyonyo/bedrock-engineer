@@ -456,8 +456,8 @@ app.whenReady().then(() => {
           // Add a flag to indicate this is a shared agent
           agent.isShared = true
 
-          // mcpToolsは自動的に生成されるため、保存対象から除外（後でpreloadで復元される）
-          // ここではmcpToolsを削除することでファイルからの読み込み時にも整合性を保つ
+          // mcpTools are automatically generated, so they are excluded from the save target (they will be restored in preload later)
+          // Here, by removing mcpTools, we maintain consistency even when loading from files
           delete agent.mcpTools
 
           return agent
@@ -543,7 +543,7 @@ app.whenReady().then(() => {
         isShared: true
       }
 
-      // mcpToolsは保存対象から除外（mcpServersのみを保存）
+      // mcpTools are excluded from the save target (only mcpServers are saved)
       delete sharedAgent.mcpTools
 
       // Write the agent to file based on the format

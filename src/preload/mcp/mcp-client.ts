@@ -23,7 +23,7 @@ export class MCPClient {
 
   static async fromCommand(command: string, args: string[], env?: Record<string, string>) {
     const client = new MCPClient()
-    // コマンドパスを解決
+    // Resolve command path
     const resolvedCommand = resolveCommand(command)
     if (resolvedCommand !== command) {
       console.log(`Using resolved command path: ${resolvedCommand} (original: ${command})`)
@@ -45,7 +45,7 @@ export class MCPClient {
         env: {
           ...env,
           ...(process.env as Record<string, string>),
-          // 明示的にPATHを設定して確実に現在の環境変数を使用
+          // Explicitly set PATH to ensure using current environment variables
           PATH: process.env.PATH || ''
         }
       })

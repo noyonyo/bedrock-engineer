@@ -55,7 +55,7 @@ function isValidScenario(obj: unknown): obj is GeneratedScenario {
 }
 
 function extractCompleteObjects(text: string): GeneratedScenario[] {
-  // 最初の '[' を見つける
+  // Find first '['
   const startIndex = text.indexOf('[')
   if (startIndex === -1) return []
 
@@ -69,7 +69,7 @@ function extractCompleteObjects(text: string): GeneratedScenario[] {
   while (currentIndex < text.length) {
     const char = text[currentIndex]
 
-    // 文字列内のエスケープ文字の処理
+    // Handle escape characters in string
     if (escapeNext) {
       currentObject += char
       escapeNext = false
@@ -77,7 +77,7 @@ function extractCompleteObjects(text: string): GeneratedScenario[] {
       continue
     }
 
-    // エスケープ文字の処理
+    // Handle string start/end
     if (char === '\\' && inString) {
       currentObject += char
       escapeNext = true
@@ -85,25 +85,25 @@ function extractCompleteObjects(text: string): GeneratedScenario[] {
       continue
     }
 
-    // 文字列の開始/終了の処理
+    // Handle the start/end of a string
+    // If inside a string, add as is
     if (char === '"') {
       inString = !inString
     }
 
-    // 文字列内の場合は、そのまま追加
+    // Handle the start/end of an object
     if (inString) {
       currentObject += char
       currentIndex++
       continue
     }
-
-    // オブジェクトの開始/終了の処理
+    // When the object is complete
     if (char === '{') {
       bracketCount++
     } else if (char === '}') {
       bracketCount--
 
-      // オブジェクトが完了した場合
+      // Ignore if parsing fails
       if (bracketCount === 0) {
         currentObject += char
         try {
@@ -112,13 +112,13 @@ function extractCompleteObjects(text: string): GeneratedScenario[] {
             scenarios.push(parsed)
           }
         } catch (e) {
-          // パースに失敗した場合は無視
+          // Ignore failures in parsing
         }
         currentObject = ''
       }
     }
 
-    // 現在のオブジェクトの構築中
+    // Currently building the object
     if (bracketCount > 0 || char === '{') {
       currentObject += char
     }
@@ -154,7 +154,7 @@ System Prompt: ${systemPrompt}
   useEffect(() => {
     if (messages.length > 1) {
       const lastMessage = messages[messages.length - 1]
-      // lastMessage.content の配列のなかから text フィールドを含む要素を取り出す
+      // Extract elements containing the text field from the lastMessage.content array
       const textContent = lastMessage.content?.find((v) => v.text)
       if (textContent && textContent.text) {
         const parsedScenarios = extractCompleteObjects(textContent.text)

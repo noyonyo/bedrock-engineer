@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-## Is your feature request related to a problem? / この機能リクエストは何か問題に関連していますか？
+## Is your feature request related to a problem? / Is this feature request related to a problem?
 
 **English**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]

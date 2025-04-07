@@ -4,14 +4,14 @@ import { applyPatch } from 'diff'
 
 export async function applyPatchToFile(filePath: string, patch: string): Promise<string> {
   try {
-    // ファイルの内容を読み込む
+    // Read file contents
     const originalContent = await fs.readFile(filePath, 'utf-8')
 
-    // パッチを適用
+    // Apply patch
     const patchedContent = applyPatch(originalContent, patch, { fuzzFactor: 2 })
     console.log(patchedContent)
     if (typeof patchedContent === 'string') {
-      // 変更された内容をファイルに書き込む
+      // Write modified content to file
       await fs.writeFile(filePath, patchedContent, 'utf-8')
       return `Successfully applied patch to ${filePath}`
     } else {

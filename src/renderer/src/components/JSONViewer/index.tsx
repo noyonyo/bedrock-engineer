@@ -4,19 +4,19 @@ import { useTranslation } from 'react-i18next'
 
 interface JSONViewerProps {
   /**
-   * 表示対象のJSONデータ
+   * JSON data to display
    */
   data: any
   /**
-   * タイトル（オプション）
+   * Title (optional)
    */
   title?: string
   /**
-   * 最大高さ（CSS値）
+   * Maximum height (CSS value)
    */
   maxHeight?: string
   /**
-   * コピーボタンを表示するかどうか
+   * Whether to display the copy button
    */
   showCopyButton?: boolean
 }

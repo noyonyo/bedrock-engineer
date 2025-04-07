@@ -20,15 +20,15 @@ export const executeTool = async (input: ToolInput): Promise<string | ToolResult
   })
 
   try {
-    // MCPツールの場合は専用処理へ
+    // For MCP tools, use dedicated processing
     if (typeof input.type === 'string' && isMcpTool(input.type)) {
-      // 現在選択されているエージェントIDを取得
+      // Get currently selected agent ID
       const selectedAgentId = store.get('selectedAgentId')
 
-      // エージェント固有のMCPサーバー設定を取得
+      // Get agent-specific MCP server configuration
       let mcpServers: any[] | undefined = undefined
       if (selectedAgentId) {
-        // カスタムエージェントからMCPサーバー設定を取得
+        // Get MCP server configuration from custom agent
         const customAgents = store.get('customAgents') || []
         const currentAgent = customAgents.find((agent) => agent.id === selectedAgentId)
         if (currentAgent && currentAgent.mcpServers && currentAgent.mcpServers.length > 0) {
@@ -113,16 +113,16 @@ export const executeTool = async (input: ToolInput): Promise<string | ToolResult
       }
 
       case 'executeCommand': {
-        // 基本的なシェル設定を取得
+        // Get basic shell settings
         const shell = store.get('shell')
 
-        // 現在選択されているエージェントIDを取得
+        // Get currently selected agent ID
         const selectedAgentId = store.get('selectedAgentId')
 
-        // エージェント固有の許可コマンドを取得
+        // Get agent-specific allowed commands
         let allowedCommands: CommandPatternConfig[] = []
         if (selectedAgentId) {
-          // カスタムエージェントおよび共有エージェントから許可コマンドを取得
+          // Get allowed commands from custom agent and shared agents
           const currentAgent = findAgentById(selectedAgentId)
           if (currentAgent && currentAgent.allowedCommands) {
             allowedCommands = currentAgent.allowedCommands
@@ -162,7 +162,7 @@ export const executeTool = async (input: ToolInput): Promise<string | ToolResult
         return toolService.think(input.thought)
 
       default: {
-        // 未知のツール名の場合はエラー
+        // Unknown tool name case
         const unknownToolError = `Unknown tool type: ${input.type}`
         logger.error(unknownToolError)
         throw new Error(unknownToolError)

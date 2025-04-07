@@ -2,7 +2,7 @@ import { extractDrawioXml } from '../xmlParser'
 import { describe, expect, test } from '@jest/globals'
 
 describe('extractDrawioXml', () => {
-  // 正常なmxfileタグを含むケース
+  // Case with a valid mxfile tag
   test('should extract XML between mxfile tags', () => {
     const content = `
       Here is the diagram you requested:
@@ -35,7 +35,7 @@ describe('extractDrawioXml', () => {
     expect(extractDrawioXml(content)).toBe(expected)
   })
 
-  // コードブロック内のXMLを抽出するケース
+  // Case extracting XML within a code block
   test('should extract XML from code block', () => {
     const content = `
       Here is the diagram XML:
@@ -68,7 +68,7 @@ describe('extractDrawioXml', () => {
     expect(extractDrawioXml(content)).toBe(expected)
   })
 
-  // mxGraphModelタグのみを含むケース
+  // Case with only mxGraphModel tag
   test('should wrap mxGraphModel with mxfile structure when only mxGraphModel is present', () => {
     const content = `
       Here's the diagram structure:
@@ -83,7 +83,7 @@ describe('extractDrawioXml', () => {
 
     const result = extractDrawioXml(content)
 
-    // 日付は動的に生成されるため、部分的なマッチングを行う
+    // Partial matching as the date is generated dynamically
     expect(result).toContain('<mxfile host="Electron" modified="')
     expect(result).toContain('type="device">')
     expect(result).toContain('<diagram>')
@@ -97,7 +97,7 @@ describe('extractDrawioXml', () => {
     expect(result).toContain('</mxfile>')
   })
 
-  // XMLが含まれていないケース
+  // Case with no XML included
   test('should return empty string when no XML is found', () => {
     const content = `
       I couldn't generate a diagram for your request.
@@ -107,13 +107,13 @@ describe('extractDrawioXml', () => {
     expect(extractDrawioXml(content)).toBe('')
   })
 
-  // 空の入力に対するケース
+  // Case for empty input
   test('should handle empty input', () => {
     expect(extractDrawioXml('')).toBe('')
     expect(extractDrawioXml(undefined as unknown as string)).toBe('')
   })
 
-  // 複数のXMLブロックが含まれるケース（最初のものを抽出すべき）
+  // Case with multiple XML blocks (should extract the first one)
   test('should extract the first XML block when multiple are present', () => {
     const content = `
       Here are two diagrams:
@@ -155,7 +155,7 @@ describe('extractDrawioXml', () => {
     expect(extractDrawioXml(content)).toBe(expected)
   })
 
-  // 属性を含む複雑なmxfileタグ
+  // Case with mxfile tags with complex attributes
   test('should handle mxfile tags with complex attributes', () => {
     const content = `
       <mxfile host="Electron" modified="2023-01-01T12:00:00.000Z" agent="Mozilla/5.0" etag="abc123" version="21.7.5" type="device">

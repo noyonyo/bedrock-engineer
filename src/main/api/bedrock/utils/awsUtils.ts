@@ -5,48 +5,48 @@ import type { LLM } from '../../../../types/llm'
 import { fromIni } from '@aws-sdk/credential-providers'
 
 /**
- * 指定されたモデルIDに対応するモデル情報を取得する
+ * Get model information corresponding to the specified model ID
  */
 function findModelById(modelId: string): LLM | undefined {
-  // すべてのモデルリストを結合して検索
+  // Combine all model lists and search
   const allModels = [...baseModels, ...usModels, ...euModels, ...apacModels]
   return allModels.find((model) => model.modelId === modelId)
 }
 
 /**
- * ThrottlingException 発生時に別のリージョンを選択する
- * 現在のリージョンとは異なるリージョンをランダムに返す
+ * Select an alternate region when ThrottlingException occurs
+ * Returns a random region different from the current region
  *
- * @param currentRegion 現在のリージョン
- * @param modelId モデルID
- * @returns 選択されたリージョン（現在のリージョンとは異なる）
+ * @param currentRegion Current region
+ * @param modelId Model ID
+ * @returns Selected region (different from current region)
  */
 export function getAlternateRegionOnThrottling(
   currentRegion: string,
   modelId: string,
   configuredRegions: string[] = []
 ): string {
-  // モデル情報を取得
+  // Get model information
   const model = findModelById(modelId)
   if (!model || !model.regions) {
     return currentRegion
   }
 
-  // 設定された利用可能なリージョンとモデルの利用可能なリージョンの共通部分を取得
+  // Get the intersection of configured available regions and model's available regions
   let availableRegions =
     configuredRegions.length > 0
       ? model.regions.filter((region) => configuredRegions.includes(region))
       : model.regions
 
-  // 現在のリージョンを除外
+  // Exclude current region
   availableRegions = availableRegions.filter((region) => region !== currentRegion)
 
-  // 利用可能なリージョンがない場合は現在のリージョンを返す
+  // Return current region if no available regions
   if (availableRegions.length === 0) {
     return currentRegion
   }
 
-  // ランダムに別のリージョンを選択
+  // Randomly select another region
   const randomIndex = Math.floor(Math.random() * availableRegions.length)
   return availableRegions[randomIndex]
 }

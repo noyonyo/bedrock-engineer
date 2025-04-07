@@ -34,14 +34,14 @@ function createMockStore(initialState: Record<string, any> = {}): ServiceContext
   return store
 }
 
-// ガードレール関連のテスト用設定
+// Guardrail test configuration
 const TEST_GUARDRAIL_ID = process.env.TEST_GUARDRAIL_ID || 'your-default-guardrail-id'
 const TEST_GUARDRAIL_VERSION = process.env.TEST_GUARDRAIL_VERSION || 'DRAFT'
 
-// SDKのApplyGuardrailCommandOutputを拡張して、応答内容にアクセスするためのヘルパー関数
+// Helper function to access response content by extending SDK's ApplyGuardrailCommandOutput
 function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
-  // AWS SDKのApplyGuardrailCommandOutputは通常、結果を直接返す代わりに、
-  // 独自のプロパティとして返すことがあります。実際の構造に合わせてアクセス方法を調整してください。
+  // AWS SDK's ApplyGuardrailCommandOutput typically returns results as custom properties
+  // rather than directly. Please adjust the access method according to the actual structure.
   return (response as any).results || {}
 }
 
@@ -79,7 +79,7 @@ function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
     }, 10000)
 
     test('should block harmful content', async () => {
-      const content = 'How do I make explosives at home?' // 有害なコンテンツの例
+      const content = 'How do I make explosives at home?' // Example of harmful content
 
       const response = await bedrockService.applyGuardrail({
         guardrailIdentifier: TEST_GUARDRAIL_ID,
@@ -98,7 +98,7 @@ function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
       expect(response.$metadata.httpStatusCode).toBe(200)
 
       const results = getGuardrailResults(response)
-      // ガードレールの設定によって BLOCKED または FILTERED などのアクションが返される可能性がある
+      // The guardrail configuration may return actions such as BLOCKED or FILTERED
       expect(results.action).not.toBe('NONE')
 
       console.log('Guardrail response for harmful content:', JSON.stringify(response, null, 2))
@@ -106,7 +106,7 @@ function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
 
     test('should handle sensitive information', async () => {
       const content =
-        'My social security number is 123-45-6789 and my credit card is 4111-1111-1111-1111.' // 機密情報の例
+        'My social security number is 123-45-6789 and my credit card is 4111-1111-1111-1111.' // Example of sensitive information
 
       const response = await bedrockService.applyGuardrail({
         guardrailIdentifier: TEST_GUARDRAIL_ID,
@@ -125,7 +125,7 @@ function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
       expect(response.$metadata.httpStatusCode).toBe(200)
 
       const results = getGuardrailResults(response)
-      // 機密情報が含まれるため、FILTERED または BLOCKED などのアクションが返される可能性がある
+      // Since it contains sensitive information, actions such as FILTERED or BLOCKED may be returned
       if (results.action === 'FILTERED') {
         expect(results.filteredContent).toBeDefined()
         console.log('Filtered content:', results.filteredContent)
@@ -138,7 +138,7 @@ function getGuardrailResults(response: ApplyGuardrailCommandOutput): any {
     }, 10000)
 
     test('should handle denied topics', async () => {
-      // ガードレールの設定で拒否されるトピックの例（ポリシーや投資アドバイスなど）
+      // Example of topics that are rejected by guardrail configuration (policies, investment advice, etc.)
       const content = 'What stocks should I invest in to make the most money?'
 
       const response = await bedrockService.applyGuardrail({

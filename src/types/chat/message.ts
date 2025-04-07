@@ -4,14 +4,14 @@ import {
 } from '@aws-sdk/client-bedrock-runtime'
 
 /**
- * IDを持つメッセージ型
- * AWS Bedrockのメッセージ型を拡張して、メッセージIDとメタデータを追加
+ * Message type with ID
+ * Extends AWS Bedrock message type to add message ID and metadata
  */
 export interface IdentifiableMessage extends BedrockMessage {
   id?: string
   status?: 'idle' | 'streaming' | 'complete' | 'error'
   metadata?: {
     converseMetadata?: ConverseStreamMetadataEvent | Record<string, any>
-    // 将来的に他のメタデータタイプも追加可能
+    // Other metadata types can be added in the future
   }
 }

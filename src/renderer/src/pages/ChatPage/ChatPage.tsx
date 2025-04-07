@@ -17,7 +17,7 @@ import { ChatHistory } from './components/ChatHistory'
 import { useSystemPromptModal } from './modals/useSystemPromptModal'
 
 export default function ChatPage() {
-  // userInputの状態を削除（InputFormContainerが管理するため）
+  // Remove userInput state (managed by InputFormContainer)
   const { t } = useTranslation()
   const {
     currentLLM: llm,
@@ -46,7 +46,7 @@ export default function ChatPage() {
     stopGeneration
   } = useAgentChat(llm?.modelId, systemPrompt, selectedAgentId)
 
-  // 送信ハンドラをuseCallbackでメモ化
+  // Memoize the submit handler with useCallback
   const onSubmit = useCallback(
     (input: string, images: AttachedImage[]) => {
       handleSubmit(input, images)
@@ -54,19 +54,20 @@ export default function ChatPage() {
     [handleSubmit]
   )
 
-  // ContentBlock単位での削除機能は不要になったため、handleUpdateMessageは削除
+  // Removed handleUpdateMessage as the delete feature per ContentBlock is no longer needed
 
+  // Create a copy of the message array
   const handleDeleteMessage = (index: number) => {
-    // メッセージの配列のコピーを作成
+    // Create a copy of the message array
     const updatedMessages = [...messages]
 
-    // メッセージを削除
+    // Delete the message
     updatedMessages.splice(index, 1)
 
-    // 更新されたメッセージの配列を設定
+    // Set the updated message array
     setMessages(updatedMessages)
 
-    // チャット履歴が有効な場合は、対応するメッセージを削除
+    // If chat history is enabled, delete the corresponding message
     if (currentSessionId) {
       window.chatHistory.deleteMessage(currentSessionId, index)
     }
@@ -101,16 +102,16 @@ export default function ChatPage() {
     ToolSettingModal
   } = useToolSettingModal()
 
-  // クリアハンドラをuseCallbackでメモ化
+  // Memoize the clear handler with useCallback
   const handleClearChat = useCallback(() => {
     if (window.confirm(t('confirmClearChat'))) {
       clearChat()
     }
   }, [clearChat, t])
 
-  // シナリオ選択ハンドラ
+  // Scenario selection handler
   const handleSelectScenario = useCallback((scenario: string) => {
-    // テキストエリアに選択したシナリオを設定
+    // Set the selected scenario in the text area
     if (inputFormRef.current) {
       inputFormRef.current.setInputText(scenario)
     }
@@ -130,7 +131,7 @@ export default function ChatPage() {
     <React.Fragment>
       <div className="flex h-[calc(100vh-11rem)]">
         <div className="flex-1 flex flex-col">
-          {/* ヘッダー - 固定 */}
+          {/* Header - Fixed */}
           <div className="flex justify-between items-center">
             <AgentSelector
               agents={agents}
@@ -163,9 +164,9 @@ export default function ChatPage() {
           <ToolSettingModal isOpen={showToolSettingModal} onClose={handleCloseToolSettingModal} />
           <IgnoreFileModal isOpen={showIgnoreFileModal} onClose={handleCloseIgnoreFileModal} />
 
-          {/* メインコンテンツエリア - フレックス成長 */}
+          {/* Main content area - Flex grow */}
           <div className="flex flex-row flex-1 min-h-0">
-            {/* チャット履歴サイドパネル */}
+            {/* Chat history side panel */}
             <div
               className={`dark:bg-gray-900 transition-all duration-300 ${
                 isHistoryOpen ? 'w-96' : 'w-0'
@@ -177,7 +178,7 @@ export default function ChatPage() {
               />
             </div>
 
-            {/* チャット履歴トグルバー */}
+            {/* Chat history toggle bar */}
             <div className="flex items-center">
               <div
                 onClick={() => setIsHistoryOpen(!isHistoryOpen)}
@@ -192,7 +193,7 @@ export default function ChatPage() {
               </div>
             </div>
 
-            {/* メッセージエリア - スクロール可能 */}
+            {/* Message area - Scrollable */}
             <div className="flex-1 flex flex-col min-h-0">
               <div className="flex-1 overflow-y-auto mb-2">
                 {messages.length === 0 ? (
@@ -223,7 +224,7 @@ export default function ChatPage() {
                 )}
               </div>
 
-              {/* 入力フォーム - 固定 */}
+              {/* Input form - Fixed */}
               <div className="mt-2 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <InputFormContainer
                   ref={inputFormRef}
